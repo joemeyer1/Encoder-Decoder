@@ -10,6 +10,12 @@ import sys
 import random
 sys.path.append('/Users/joe/img_gen/src')
 
+def batch(data, batch_size):
+	n_batches = data.shape[0] // batch_size
+	batched_shape = [n_batches, batch_size] + list(data.shape[1:])
+	batched_data = data[:n_batches*batch_size].reshape(batched_shape)
+	return batched_data
+
 def fetch_img_data(n=6000, img_size=(256, 256)):
 	print("\tgetting neg data...")
 	neg_images = get_neg_images(n//2, img_size)

@@ -1,19 +1,13 @@
 # Copyright (c) 2020 Joseph Meyer
 
 
-from copy import deepcopy
 from math import log2
 from typing import Tuple
 
-import torch
-from tqdm import tqdm
-from src.batch_data import batch as get_batches
 from torch import nn, Tensor
 
 from src.cnn import CNN
 
-
-# from src.classifier import Classifier
 
 class EncoderDecoder(nn.Module):
     def __init__(self, img_size=(256, 256), embedding_size=64):
