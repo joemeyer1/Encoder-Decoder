@@ -36,7 +36,7 @@ class EncoderDecoder(nn.Module):
     def get_net_shape(self, net_type: str) -> Tuple:
         net_shape = []
         layer_size = self.img_size[-1]
-        while layer_size > self.embedding_size:
+        while layer_size >= self.embedding_size:
             net_shape.append(layer_size)
             layer_size //= 2
         if net_type == 'decoder':

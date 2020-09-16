@@ -11,19 +11,17 @@ from src.train import train_net
 
 class TestEncoderDecoder(unittest.TestCase):
 
-    # def test_train_encoder_decoder_sunsets(self):
-    #     from src.data_utils import get_image_data
-    #     from src.image_functions import show_image
-    #     image_data = get_image_data(n=10)
-    #     c = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128)
-    #     y1 = c.forward(image_data[:1])
-    #     y2 = c.forward(image_data[:2])
-    #     y3 = c.forward(image_data)
-    #     train_net(net=c, data=image_data, epochs=100, batch_size=2, verbose=True, lr=.0001, save_best_net=False)
-    #     y = c.forward(image_data[0])
-    #     show_image(y)
-    #     self.assertTrue(image_data is not None)
-
+    def test_train_encoder_decoder_sunsets(self):
+        from src.data_utils import get_image_data
+        from src.image_functions import show_image
+        image_data = get_image_data(n=16, img_size=(128, 128))
+        c = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=64)
+        y1 = c.forward(image_data[:1])
+        show_image(y1[0])
+        train_net(net=c, data=image_data, epochs=5, batch_size=4, verbose=True, lr=1e-6, save_best_net=False)
+        y = c.forward(image_data[:1])
+        show_image(y[0])
+        self.assertTrue(image_data is not None)
 
     def test_train_encoder_decoder(self):
         x = torch.randn(4, 3, 16, 16) * 100
