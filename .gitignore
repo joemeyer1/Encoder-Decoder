@@ -124,4 +124,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# old directory for reference
 src_old/
+
+.DS_Store
