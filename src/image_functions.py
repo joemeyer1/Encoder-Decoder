@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 from PIL import Image
 import torch

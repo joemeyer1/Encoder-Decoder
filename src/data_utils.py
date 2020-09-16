@@ -1,4 +1,5 @@
-# Copyright (c) 2020 Joseph Meyer
+#!/usr/bin/env python3
+# Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 
 # data [(tensor(image/non-image), tensor(P(image)), ... ]
