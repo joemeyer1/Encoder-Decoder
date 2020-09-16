@@ -51,8 +51,7 @@ def get_pos_images(n, dir_name='img_data', img_size=(256,256)):
 	return get_image_data(n, dir_name, 1, img_size)
 
 
-
-def get_image_data(n, dir_name='img_data', label=1, img_size=(256,256)):
+def get_image_data(n, dir_name='img_data', img_size=(256, 256)):
 	fnames = os.listdir(dir_name)
 	img_vecs = []
 	while n and fnames:
@@ -68,7 +67,7 @@ def get_image_data(n, dir_name='img_data', label=1, img_size=(256,256)):
 			# image file invalid
 			pass
 	# return data w pos labels
-	return img_vecs
+	return torch.stack(img_vecs)
 	# return [(img_vec, torch.tensor([label], dtype=torch.float)) for img_vec in img_vecs]
 
 def get_neg_images_rand(n, size):
