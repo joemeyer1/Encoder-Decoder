@@ -3,6 +3,7 @@
 
 from torch import nn
 
+
 class CNN(nn.Module):
 	def __init__(self, shape = (3, 3, 3, 3, 1), stride=1):
 		super(CNN, self).__init__()
@@ -17,6 +18,18 @@ class CNN(nn.Module):
 
 	def forward(self, x):
 		return self.net(x)
+
+
+class ResConvBlock(nn.Module):
+	def __init__(self, kernel_size=3, stride=1):
+		super().__init__()
+		self.block = nn.Sequential(
+			ConvBlock(kernel_size, stride),
+			ConvBlock(kernel_size, stride),
+		)
+
+	def forward(self, x):
+		return self.block(x) + x
 
 
 class ConvBlock(nn.Module):
