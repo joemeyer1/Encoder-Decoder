@@ -5,18 +5,20 @@ from PIL import Image
 import torch
 
 
-
 def show_images_from_dir(n=float('inf'), dir_name='recent'):
     img_vecs = get_image_vecs(n, dir_name)
-    show_images_from_vec(img_vecs)
+    show_images(img_vecs)
 
-def show_images_from_vec(img_vecs):
+
+def show_images(img_vecs):
     for img_vec in img_vecs:
         show_image(img_vec)
+
 
 def save_img(img_vec, img_filename):
     im = show_image(img_vec)
     im.save(img_filename)
+
 
 def show_image(img_vec):
     img_size = img_vec.shape[-2:]
