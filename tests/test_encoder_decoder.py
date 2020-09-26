@@ -23,7 +23,7 @@ class TestEncoderDecoder(unittest.TestCase):
         time.sleep(3)
         y1 = c.forward(image_data[:1])
         show_image(y1[0])
-        train_net(net=c, data=image_data, epochs=800, batch_size=8, verbose=True, lr=1e-6, save_best_net=False)
+        train_net(net=c, data=image_data, epochs=800, batch_size=4, verbose=True, lr=1e-5, save_best_net=False)
         y = c.forward(image_data[:1])
         show_image(y[0])
         # time.sleep(3)
@@ -37,7 +37,7 @@ class TestEncoderDecoder(unittest.TestCase):
         rand_y = c.net.decoder.forward(rand_y)
         time.sleep(3)
         show_image(rand_y[0])
-        self.assertTrue(torch.sum(abs(rand_y[0] - image_data[0])) > torch.sum(abs(y[0] - image_data[0])))
+        self.assertTrue(torch.sum(abs(rand_y1[0] - image_data[0])) > torch.sum(abs(y[0] - image_data[0])))
 
     @unittest.skip
     def test_train_encoder_decoder_sunset(self):
