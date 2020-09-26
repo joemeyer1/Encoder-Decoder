@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
+from copy import deepcopy
 
 from math import log2
 from typing import Tuple
@@ -24,11 +25,11 @@ class EncoderDecoder(nn.Module):
         self.embedding_size = 2**int(log2(embedding_size))
         print(f"embedding size: {self.embedding_size}")
 
-        if cnn_shape == None:
-            cnn_shape = self.get_net_shape('encoder')
-        self.encoder_shape = cnn_shape
+        # if cnn_shape == None:
+        #     cnn_shape = self.get_net_shape('encoder')
+        self.encoder_shape = list(cnn_shape)
         print(f"encoder shape: {self.encoder_shape}")
-        encoder = CNN(shape=self.encoder_shape, stride=2)
+        encoder = CNN(shape=self.encoder_shape, stride=1)
         self.net.add_module('encoder', encoder)
 
 
@@ -42,9 +43,10 @@ class EncoderDecoder(nn.Module):
         # linear4 = nn.Linear(img_size[-1] // compression_factor, img_size[-1])
         # self.net.add_module('linear4', linear4)
 
-        self.decoder_shape = self.get_net_shape('decoder')
+        self.decoder_shape = list(cnn_shape)
+        self.decoder_shape.reverse()
         print(f"decoder shape: {self.decoder_shape}")
-        decoder = CNN(shape=self.decoder_shape, stride=2)
+        decoder = CNN(shape=self.decoder_shape, stride=1)
         self.net.add_module('decoder', decoder)
 
     def forward(self, x: Tensor):

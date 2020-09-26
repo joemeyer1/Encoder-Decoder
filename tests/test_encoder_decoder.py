@@ -17,13 +17,13 @@ class TestEncoderDecoder(unittest.TestCase):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
         import time
-        image_data = get_image_data(n=256, img_size=(512, 512))
-        c = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128, cnn_shape=None)
+        image_data = get_image_data(n=8, img_size=(512, 512))
+        c = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128, cnn_shape=(3,1,3,1))
         show_image(image_data[0])
         time.sleep(3)
         y1 = c.forward(image_data[:1])
         show_image(y1[0])
-        train_net(net=c, data=image_data, epochs=800, batch_size=16, verbose=True, lr=1e-3, save_best_net=False)
+        train_net(net=c, data=image_data, epochs=800, batch_size=1, verbose=True, lr=1e-3, save_best_net=False)
         y = c.forward(image_data[:1])
         show_image(y[0])
         time.sleep(3)
