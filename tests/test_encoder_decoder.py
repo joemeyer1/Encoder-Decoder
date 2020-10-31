@@ -18,14 +18,14 @@ class TestEncoderDecoder(unittest.TestCase):
         from src.image_functions import show_image, show_images
         import time
         image_data = get_image_data(n=256, img_size=(256, 256))
-        c = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128, cnn_shape=(3,3,3,1))
-        show_image(image_data[0])
+        encoder_decoder = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128, cnn_shape=(3,3,3,1))
+        show_image(image_data[0], "image.jpg", delete_after=True)
         time.sleep(3)
-        y1 = c.forward(image_data[:1])
-        show_image(y1[0])
-        train_net(net=c, data=image_data, epochs=800, batch_size=4, verbose=True, lr=1e-5, save_best_net=False)
-        y = c.forward(image_data[:1])
-        show_image(y[0])
+        encoded_decoded_image_before_training = encoder_decoder.forward(image_data[:1])
+        show_image(encoded_decoded_image_before_training[0], "encoded_decoded_image_before_training.jpg", delete_after=True)
+        train_net(net=encoder_decoder, data=image_data, epochs=800, batch_size=4, verbose=True, lr=1e-5, save_best_net=False)
+        encoded_decoded_image_after_training = encoder_decoder.forward(image_data[:1])
+        show_image(encoded_decoded_image_after_training[0], "encoded_decoded_image_after_training.jpg", delete_after=True)
         # time.sleep(3)
         # show_images(image_data[:2])
         # embedding1 = c.net[:2](image_data[:1])
@@ -33,11 +33,11 @@ class TestEncoderDecoder(unittest.TestCase):
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
         time.sleep(3)
-        rand_y = c.net.encoder.forward(torch.randn(y[:1].shape)*100)
-        rand_y = c.net.decoder.forward(rand_y)
+        encoded_decoded_random_img = encoder_decoder.net.encoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*100)
+        encoded_decoded_random_img = encoder_decoder.net.decoder.forward(encoded_decoded_random_img)
         time.sleep(3)
-        show_image(rand_y[0])
-        self.assertTrue(torch.sum(abs(rand_y1[0] - image_data[0])) > torch.sum(abs(y[0] - image_data[0])))
+        show_image(encoded_decoded_random_img[0], "encoded_decoded_random_img.jpg", delete_after=True)
+        self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
 
     @unittest.skip
     def test_train_encoder_decoder_sunset(self):

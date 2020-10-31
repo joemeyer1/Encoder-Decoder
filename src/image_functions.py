@@ -3,6 +3,8 @@
 
 from PIL import Image
 import torch
+import os
+import time
 
 
 def show_images_from_dir(n=float('inf'), dir_name='recent'):
@@ -16,17 +18,30 @@ def show_images(img_vecs):
 
 
 def save_img(img_vec, img_filename):
-    im = show_image(img_vec)
+    im = get_image(img_vec)
     im.save(img_filename)
 
+def show_image(img_vec, img_filename, delete_after=True):
+    save_img(img_vec, img_filename)
+    os.system(f"open {img_filename}")
+    if delete_after:
+        time.sleep(.1)
+        os.system(f"rm {img_filename}")
 
-def show_image(img_vec):
+def get_image(img_vec):
     img_size = img_vec.shape[-2:]
     img_vec = format_img(img_vec, img_size)
     im = Image.new('RGB', img_size)
     im.putdata(img_vec)
-    im.show()
     return im
+
+# def show_image(img_vec):
+#     img_size = img_vec.shape[-2:]
+#     img_vec = format_img(img_vec, img_size)
+#     im = Image.new('RGB', img_size)
+#     im.putdata(img_vec)
+#     im.show()
+#     return im
 
 
 # get image vectors
