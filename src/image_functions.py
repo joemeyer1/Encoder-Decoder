@@ -22,10 +22,20 @@ def save_img(img_vec, img_filename):
     im.save(img_filename)
 
 def show_image(img_vec, img_filename, delete_after=True):
+    filename_finalized = False
+    i = 0
+    name, ext = img_filename.split('.')
+    while not filename_finalized:
+        try:
+            open(name+str(i)+'.'+ext, 'r').close()
+            i += 1
+        except FileNotFoundError:
+            img_filename = name+str(i)+'.'+ext
+            filename_finalized = True
     save_img(img_vec, img_filename)
     os.system(f"open {img_filename}")
     if delete_after:
-        time.sleep(.1)
+        time.sleep(1)
         os.system(f"rm {img_filename}")
 
 def get_image(img_vec):

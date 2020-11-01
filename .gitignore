@@ -129,3 +129,5 @@ src_old/
 
 .DS_Store
 *.xml
+
+*.jpg

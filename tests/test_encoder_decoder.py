@@ -17,26 +17,34 @@ class TestEncoderDecoder(unittest.TestCase):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
         import time
+
+        delete_images = False
+
         image_data = get_image_data(n=256, img_size=(256, 256))
         encoder_decoder = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=128, cnn_shape=(3,3,3,1))
-        show_image(image_data[0], "image.jpg", delete_after=True)
+        show_image(image_data[0], "image.jpg", delete_after=delete_images)
         time.sleep(3)
         encoded_decoded_image_before_training = encoder_decoder.forward(image_data[:1])
-        show_image(encoded_decoded_image_before_training[0], "encoded_decoded_image_before_training.jpg", delete_after=True)
+        show_image(encoded_decoded_image_before_training[0], "encoded_decoded_image_before_training.jpg", delete_after=delete_images)
+
+        encoded_decoded_random_img_before_training = encoder_decoder.net.encoder.forward(torch.randn(image_data[:1].shape) * 100)
+        encoded_decoded_random_img_before_training = encoder_decoder.net.decoder.forward(encoded_decoded_random_img_before_training)
+        show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_img_before_training.jpg", delete_after=delete_images)
+
         train_net(net=encoder_decoder, data=image_data, epochs=800, batch_size=4, verbose=True, lr=1e-5, save_best_net=False)
         encoded_decoded_image_after_training = encoder_decoder.forward(image_data[:1])
-        show_image(encoded_decoded_image_after_training[0], "encoded_decoded_image_after_training.jpg", delete_after=True)
+        show_image(encoded_decoded_image_after_training[0], "encoded_decoded_image_after_training.jpg", delete_after=delete_images)
         # time.sleep(3)
         # show_images(image_data[:2])
         # embedding1 = c.net[:2](image_data[:1])
         # embedding2 = c.net[:2](image_data[1:2])
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
-        time.sleep(3)
+
         encoded_decoded_random_img = encoder_decoder.net.encoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*100)
         encoded_decoded_random_img = encoder_decoder.net.decoder.forward(encoded_decoded_random_img)
-        time.sleep(3)
-        show_image(encoded_decoded_random_img[0], "encoded_decoded_random_img.jpg", delete_after=True)
+        show_image(encoded_decoded_random_img[0], "encoded_decoded_random_img.jpg", delete_after=delete_images)
+
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
 
     @unittest.skip
