@@ -35,7 +35,7 @@ def show_image(img_vec, img_filename, delete_after=True):
     save_img(img_vec, img_filename)
     os.system(f"open {img_filename}")
     if delete_after:
-        time.sleep(1)
+        time.sleep(-(-img_vec.shape[0]//256))
         os.system(f"rm {img_filename}")
 
 def get_image(img_vec):

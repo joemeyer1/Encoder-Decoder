@@ -86,3 +86,9 @@ def save_net(net, net_name):
     import pickle
     with open(net_name, 'wb') as f:
         pickle.dump(net, f)
+
+def load_net(net_name):
+    import pickle
+    with open(net_name, 'rb') as f:
+        net = pickle.load(f)
+    return net
