@@ -5,6 +5,7 @@
 # from typing import Tuple
 # from src.encoder_decoder import EncoderDecoder
 # from src.data_utils import fetch_img_data
+from src.image_functions import finalize_filename
 
 # def train(img_size: Tuple[int] = (256, 256), embedding_size: int = 64, data_dirname: str = "img_data"):
 #     """Train and save an encoder-decoder."""
@@ -82,8 +83,13 @@ def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, sav
         return net
 
 
-def save_net(net, net_name):
+def save_net(net, net_name, i=None):
     import pickle
+    if not i:
+        net_name = finalize_filename(net_name)
+    else:
+        name, ext = net_name.split('.')
+        net_name = name + str(i) + '.' + ext
     with open(net_name, 'wb') as f:
         pickle.dump(net, f)
 
