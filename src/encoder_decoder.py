@@ -56,7 +56,7 @@ class EncoderDecoder(nn.Module):
             nn.Dropout(),
             nn.Linear(output_size, output_size),
         )
-        self.net.add_module(f'linear_layer', linear_layer)
+        self.net.add_module(f'linear_embedding_layer', linear_layer)
 
 
         # add decoder
@@ -68,11 +68,21 @@ class EncoderDecoder(nn.Module):
             conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
+            output_size *= stride
             i += 1
 
         print(f"decoder shape: {self.decoder_shape}")
         # decoder = CNN(shape=self.decoder_shape, stride=compression_factor)
         self.net.add_module('decoder', decoder)
+
+        linear_layer = nn.Sequential(
+            nn.Dropout(),
+            nn.Linear(output_size, output_size),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(output_size, output_size),
+        )
+        self.net.add_module(f'linear_final_layer', linear_layer)
 
 
 

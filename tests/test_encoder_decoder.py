@@ -15,16 +15,17 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-4,
-            n_images_train=256,
+            learning_rate=1e-3,
+            n_images_train=512,
             img_dim=512,
-            embedding_size=16,
-            cnn_shape=(3,3,3,1),
+            embedding_size=4,
+            compression_factor=4,
+            cnn_shape=(5,3,1),
             delete_images=False,
             epochs=800,
-            batch_size=4,
+            batch_size=16,
             net_to_load='',
-            i=None,
+            i=24,
     ):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
@@ -34,7 +35,12 @@ class TestEncoderDecoder(unittest.TestCase):
 
         image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
         if not net_to_load:
-            encoder_decoder = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=embedding_size, cnn_shape=cnn_shape)
+            encoder_decoder = EncoderDecoder(
+                img_size=image_data.shape[-2:],
+                embedding_size=embedding_size,
+                cnn_shape=cnn_shape,
+                compression_factor=compression_factor,
+            )
         else:
             encoder_decoder = load_net(net_to_load)
         show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
