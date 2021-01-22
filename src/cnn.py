@@ -35,13 +35,10 @@ class ResConvBlock(nn.Module):
 class ConvBlock(nn.Module):
 	def __init__(self, kernel_size=3, stride=1):
 		# make kernel odd
-		if not kernel_size%2:
+		if kernel_size % 2 == 0:
 			kernel_size += 1
 		# calculate padding to retain dim
-		if kernel_size == 1:
-			padding = 0
-		else:
-			padding = (kernel_size - 1) // 2
+		padding = (kernel_size - 1) // 2
 
 		super(ConvBlock, self).__init__()
 
