@@ -33,7 +33,7 @@ class ResConvBlock(nn.Module):
 
 
 class ConvBlock(nn.Module):
-	def __init__(self, kernel_size=3, stride=1):
+	def __init__(self, kernel_size=3, stride=1, scale_factor=None):
 		# make kernel odd
 		if kernel_size % 2 == 0:
 			kernel_size += 1
@@ -42,24 +42,29 @@ class ConvBlock(nn.Module):
 
 		super(ConvBlock, self).__init__()
 
-		conv_layer = nn.Conv2d(in_channels=3,
-								out_channels=3,
-								kernel_size=kernel_size,
-								stride=stride,
-								padding=padding
+		conv_layer = nn.Conv2d(
+			in_channels=3,
+			out_channels=3,
+			kernel_size=kernel_size,
+			stride=stride,
+			padding=padding,
 		)
 
-		pool_layer = nn.MaxPool2d(kernel_size=kernel_size,
-									stride=1,
-									padding=padding
-		)
+		if scale_factor:
+			pool_layer = nn.UpsamplingNearest2d(scale_factor=scale_factor)
+		else:
+			pool_layer = nn.MaxPool2d(
+				kernel_size=kernel_size,
+				stride=1,
+				padding=padding,
+			)
 
 		self.block = nn.Sequential(
-						nn.Dropout(),
-						conv_layer,
-						nn.ReLU(),
-						pool_layer
+			nn.Dropout(),
+			conv_layer,
+			nn.ReLU(),
+			pool_layer,
 		)
-		
+
 	def forward(self, x):
 		return self.block(x)

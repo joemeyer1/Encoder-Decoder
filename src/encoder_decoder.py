@@ -30,18 +30,18 @@ class EncoderDecoder(nn.Module):
         # if cnn_shape == None:
         #     cnn_shape = self.get_net_shape('encoder')
 
-        self.encoder_shape = {}
+        self.encoder_shape = []
         encoder = nn.Sequential()
         output_size = img_size[-1]
         encoder_length = max(len(cnn_shape), int(log(output_size / self.embedding_size, compression_factor)))
         for i in range(encoder_length):
             stride = compression_factor if output_size // compression_factor >= embedding_size else 1
             kernel_size = cnn_shape[i] if i < len(cnn_shape) else cnn_shape[-1]
-            self.encoder_shape[kernel_size] = stride
+            self.encoder_shape.append((kernel_size, stride))
             conv_block = ConvBlock(kernel_size, stride)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             encoder.add_module(f'conv_block{i}', conv_block)
-            output_size = conv_block.out_features
+            output_size //= stride
             i += 1
 
         print(f"encoder shape (maps kernel size to stride): {self.encoder_shape}")
@@ -52,13 +52,12 @@ class EncoderDecoder(nn.Module):
 
 
         # add decoder
-        decoder_shape = self.encoder_shape
-        decoder_shape.reverse()
-        self.decoder_shape = {kernel_size: stride for kernel_size, stride in decoder_shape.items()}
+        self.decoder_shape = self.encoder_shape
+        self.decoder_shape.reverse()
         decoder = nn.Sequential()
         i = 0
-        for kernel_size, stride in self.decoder_shape.items():
-            conv_block = ConvBlock(kernel_size, stride)
+        for kernel_size, stride in self.decoder_shape:
+            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
             i += 1
