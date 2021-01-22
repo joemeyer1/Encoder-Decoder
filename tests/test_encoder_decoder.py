@@ -21,7 +21,7 @@ class TestEncoderDecoder(unittest.TestCase):
             embedding_size=16,
             compression_factor=4,
             cnn_shape=(5,3,1),
-            n_linear_embedding_layers=1,
+            n_linear_embedding_layers=2,
             n_linear_final_layers=1,
             delete_images=False,
             epochs=800,
@@ -49,16 +49,15 @@ class TestEncoderDecoder(unittest.TestCase):
             encoder_decoder = load_net(net_to_load)
         show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
         time.sleep(3)
-        encoded_decoded_image_before_training = encoder_decoder.forward(image_data[:1])
+        encoded_decoded_image_before_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_before_training[0], "encoded_decoded_images_before_training/encoded_decoded_image_before_training.jpg", delete_after=delete_images, i=i)
 
-        encoded_decoded_random_img_before_training = encoder_decoder.net.encoder.forward(torch.randn(image_data[:1].shape) * 128)
-        encoded_decoded_random_img_before_training = encoder_decoder.net.decoder.forward(encoded_decoded_random_img_before_training)
+        encoded_decoded_random_img_before_training = encoder_decoder.forward(torch.randn(image_data[:1].shape) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
         train_net(net=encoder_decoder, data=image_data, epochs=epochs, batch_size=batch_size, verbose=True, lr=learning_rate, save_best_net=False)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
-        encoded_decoded_image_after_training = encoder_decoder.forward(image_data[:1])
+        encoded_decoded_image_after_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_after_training[0], "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg", delete_after=delete_images, i=i)
         # time.sleep(3)
         # show_images(image_data[:2])
@@ -67,14 +66,13 @@ class TestEncoderDecoder(unittest.TestCase):
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
 
-        encoded_decoded_random_img = encoder_decoder.net.encoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*128)
-        encoded_decoded_random_img = encoder_decoder.net.decoder.forward(encoded_decoded_random_img)
+        encoded_decoded_random_img = encoder_decoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*128)
         show_image(encoded_decoded_random_img[0], "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
 
         deep_encoded_decoded_random_img = encoded_decoded_random_img
         for _ in range(1):
             deep_encoded_decoded_random_img = encoder_decoder.net.encoder.forward(deep_encoded_decoded_random_img[:1])
-            deep_encoded_decoded_random_img = encoder_decoder.net.decoder.forward(deep_encoded_decoded_random_img)
+            deep_encoded_decoded_random_img = encoder_decoder.net.forward(deep_encoded_decoded_random_img)
         show_image(deep_encoded_decoded_random_img[0], "double_encoded_decoded_random_imgs_after_training/double_encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
 
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
@@ -121,6 +119,62 @@ class TestEncoderDecoder(unittest.TestCase):
         image_data = get_image_data(n=10)
         show_image(image_data[0])
         self.assertTrue(image_data is not None)
+
+    @unittest.skip("skip")
+    def test_autoencoder(
+            self,
+            n_images_train=4,
+            img_dim=512,
+            embedding_size=16,
+            compression_factor=4,
+            cnn_shape=(5,3,1),
+            n_linear_embedding_layers=2,
+            n_linear_final_layers=1,
+            delete_images=False,
+            net_to_load='nets/net24',
+            i=24,
+    ):
+        from src.data_utils import get_image_data
+        from src.image_functions import show_image, show_images
+        import time
+
+        self.make_image_directories()
+
+        image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
+        if not net_to_load:
+            encoder_decoder = EncoderDecoder(
+                img_size=image_data.shape[-2:],
+                embedding_size=embedding_size,
+                cnn_shape=cnn_shape,
+                compression_factor=compression_factor,
+                n_linear_embedding_layers=n_linear_embedding_layers,
+                n_linear_final_layers=n_linear_final_layers,
+            )
+        else:
+            encoder_decoder = load_net(net_to_load)
+        show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
+        time.sleep(3)
+        encoded_decoded_image_after_training = encoder_decoder.forward(image_data[:1])
+        show_image(
+            encoded_decoded_image_after_training[0],
+            "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg",
+            delete_after=delete_images,
+            i=i,
+        )
+
+        encoded_decoded_random_img = encoder_decoder.net.forward(torch.randn(encoded_decoded_image_after_training[:1].shape) * 128)
+        show_image(
+            encoded_decoded_random_img[0],
+           "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg",
+           delete_after=delete_images,
+           i=i,
+        )
+
+        deep_encoded_decoded_random_img = encoded_decoded_random_img
+        for _ in range(1):
+            deep_encoded_decoded_random_img = encoder_decoder.net.forward(deep_encoded_decoded_random_img[:1])
+        show_image(deep_encoded_decoded_random_img[0], "double_encoded_decoded_random_imgs_after_training/double_encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
+
 
     @unittest.skip
     def test_get_and_show_images(self):
