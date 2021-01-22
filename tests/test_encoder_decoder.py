@@ -19,7 +19,7 @@ class TestEncoderDecoder(unittest.TestCase):
             n_images_train=256,
             img_dim=512,
             embedding_size=16,
-            cnn_shape=(5,3,1),
+            cnn_shape=(3,3,3,1),
             delete_images=True,
             epochs=800,
             batch_size=4,
@@ -28,21 +28,23 @@ class TestEncoderDecoder(unittest.TestCase):
         from src.image_functions import show_image, show_images
         import time
 
+        self.make_image_directories()
+
         image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
         encoder_decoder = EncoderDecoder(img_size=image_data.shape[-2:], embedding_size=embedding_size, cnn_shape=cnn_shape)
-        show_image(image_data[0], "image.jpg", delete_after=delete_images)
+        show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images)
         time.sleep(3)
         encoded_decoded_image_before_training = encoder_decoder.forward(image_data[:1])
-        show_image(encoded_decoded_image_before_training[0], "encoded_decoded_image_before_training.jpg", delete_after=delete_images)
+        show_image(encoded_decoded_image_before_training[0], "encoded_decoded_images_before_training/encoded_decoded_image_before_training.jpg", delete_after=delete_images)
 
         encoded_decoded_random_img_before_training = encoder_decoder.net.encoder.forward(torch.randn(image_data[:1].shape) * 128)
         encoded_decoded_random_img_before_training = encoder_decoder.net.decoder.forward(encoded_decoded_random_img_before_training)
-        show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_img_before_training.jpg", delete_after=delete_images)
+        show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images)
 
         train_net(net=encoder_decoder, data=image_data, epochs=epochs, batch_size=batch_size, verbose=True, lr=learning_rate, save_best_net=False)
         save_net(encoder_decoder, 'net')
         encoded_decoded_image_after_training = encoder_decoder.forward(image_data[:1])
-        show_image(encoded_decoded_image_after_training[0], "encoded_decoded_image_after_training.jpg", delete_after=delete_images)
+        show_image(encoded_decoded_image_after_training[0], "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg", delete_after=delete_images)
         # time.sleep(3)
         # show_images(image_data[:2])
         # embedding1 = c.net[:2](image_data[:1])
@@ -52,13 +54,13 @@ class TestEncoderDecoder(unittest.TestCase):
 
         encoded_decoded_random_img = encoder_decoder.net.encoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*128)
         encoded_decoded_random_img = encoder_decoder.net.decoder.forward(encoded_decoded_random_img)
-        show_image(encoded_decoded_random_img[0], "encoded_decoded_random_img.jpg", delete_after=delete_images)
+        show_image(encoded_decoded_random_img[0], "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg", delete_after=delete_images)
 
         deep_encoded_decoded_random_img = encoded_decoded_random_img
         for _ in range(1):
             deep_encoded_decoded_random_img = encoder_decoder.net.encoder.forward(deep_encoded_decoded_random_img[:1])
             deep_encoded_decoded_random_img = encoder_decoder.net.decoder.forward(deep_encoded_decoded_random_img)
-        show_image(deep_encoded_decoded_random_img[0], "deep_encoded_decoded_random_img.jpg", delete_after=delete_images)
+        show_image(deep_encoded_decoded_random_img[0], "double_encoded_decoded_random_imgs_after_training/double_encoded_decoded_random_img_after_training.jpg", delete_after=delete_images)
 
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
 
@@ -116,6 +118,22 @@ class TestEncoderDecoder(unittest.TestCase):
     @unittest.skip
     def testPass(self):
         self.assertTrue(True)
+
+    def make_image_directories(self):
+        import os
+        image_directories = [
+            'original_images',
+            'encoded_decoded_images_before_training',
+            'encoded_decoded_random_imgs_before_training',
+            'encoded_decoded_images_after_training',
+            'encoded_decoded_random_imgs_after_training',
+            'double_encoded_decoded_random_imgs_after_training',
+        ]
+        for dir_name in image_directories:
+            if not os.path.isdir(dir_name):
+                # makedirs allows for more complex paths to be created, versus mkdir
+                os.makedirs(dir_name)
+
 
 
 if __name__ == '__main__':
