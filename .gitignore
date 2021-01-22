@@ -131,3 +131,4 @@ src_old/
 *.xml
 
 *.jpg
+*.pickle
