@@ -14,7 +14,15 @@ from src.cnn import CNN, ConvBlock
 
 
 class EncoderDecoder(nn.Module):
-    def __init__(self, img_size=(256, 256), embedding_size=4, cnn_shape=None, compression_factor=2):
+    def __init__(
+            self,
+            img_size=(256, 256),
+            embedding_size=4,
+            cnn_shape=None,
+            compression_factor=2,
+            n_linear_embedding_layers=1,
+            n_linear_final_layers=1,
+    ):
         super(EncoderDecoder, self).__init__()
 
         self.net = nn.Sequential()
@@ -49,14 +57,15 @@ class EncoderDecoder(nn.Module):
         # encoder = CNN(shape=self.encoder_shape, stride=compression_factor)
         self.net.add_module('encoder', encoder)
 
-        linear_layer = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(output_size, output_size),
-            nn.ReLU(),
-            nn.Dropout(),
-            nn.Linear(output_size, output_size),
-        )
-        self.net.add_module(f'linear_embedding_layer', linear_layer)
+        for i in range(n_linear_embedding_layers):
+            linear_layer = nn.Sequential(
+                nn.Dropout(),
+                nn.Linear(output_size, output_size),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(output_size, output_size),
+            )
+            self.net.add_module(f'linear_embedding_layer{i}', linear_layer)
 
 
         # add decoder
@@ -75,34 +84,17 @@ class EncoderDecoder(nn.Module):
         # decoder = CNN(shape=self.decoder_shape, stride=compression_factor)
         self.net.add_module('decoder', decoder)
 
-        linear_layer = nn.Sequential(
-            nn.Dropout(),
-            nn.Linear(output_size, output_size),
-            nn.ReLU(),
-            nn.Dropout(),
-            nn.Linear(output_size, output_size),
-        )
-        self.net.add_module(f'linear_final_layer', linear_layer)
+        for i in n_linear_final_layers:
+            linear_layer = nn.Sequential(
+                nn.Dropout(),
+                nn.Linear(output_size, output_size),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(output_size, output_size),
+                nn.Linear(output_size, output_size),
+            )
+            self.net.add_module(f'linear_final_layer{i}', linear_layer)
 
-
-
-        # TRASH:
-
-        # linear1 = nn.Linear(img_size[-1], img_size[-1] // compression_factor)
-        # self.net.add_module('linear1', linear1)
-        # linear2 = nn.Linear(img_size[-1] // 2, img_size[-1] // 4)
-        # self.net.add_module('linear2', linear2)
-        #
-        # linear3 = nn.Linear(img_size[-1] // 4, img_size[-1] // 2)
-        # self.net.add_module('linear3', linear3)
-        # linear4 = nn.Linear(img_size[-1] // compression_factor, img_size[-1])
-        # self.net.add_module('linear4', linear4)
-
-        # self.decoder_shape = list(self.encoder_shape)
-        # self.decoder_shape.reverse()
-        # print(f"decoder shape: {self.decoder_shape}")
-        # decoder = CNN(shape=self.decoder_shape, stride=1)
-        # self.net.add_module('decoder', decoder)
         print(self.net)
 
     def forward(self, x: Tensor):

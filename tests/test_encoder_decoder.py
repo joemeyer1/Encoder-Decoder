@@ -18,9 +18,11 @@ class TestEncoderDecoder(unittest.TestCase):
             learning_rate=1e-3,
             n_images_train=512,
             img_dim=512,
-            embedding_size=4,
+            embedding_size=16,
             compression_factor=4,
             cnn_shape=(5,3,1),
+            n_linear_embedding_layers=1,
+            n_linear_final_layers=1,
             delete_images=False,
             epochs=800,
             batch_size=16,
@@ -40,6 +42,8 @@ class TestEncoderDecoder(unittest.TestCase):
                 embedding_size=embedding_size,
                 cnn_shape=cnn_shape,
                 compression_factor=compression_factor,
+                n_linear_embedding_layers=n_linear_embedding_layers,
+                n_linear_final_layers=n_linear_final_layers,
             )
         else:
             encoder_decoder = load_net(net_to_load)
