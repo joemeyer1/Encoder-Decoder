@@ -85,11 +85,7 @@ def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, sav
 
 def save_net(net, net_name, i=None):
     import pickle
-    if not i:
-        net_name = finalize_filename(net_name)
-    else:
-        name, ext = net_name.split('.')
-        net_name = name + str(i) + '.' + ext
+    net_name = finalize_filename(net_name, i)
     with open(net_name, 'wb') as f:
         pickle.dump(net, f)
 

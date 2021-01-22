@@ -21,20 +21,15 @@ def save_img(img_vec, img_filename):
     im = get_image(img_vec)
     im.save(img_filename)
 
-def show_image(img_vec, img_filename, delete_after=True, i=None):
-    if not i:
-        img_filename = finalize_filename(img_filename)
-    else:
-        name, ext = img_filename.split('.')
-        img_filename = name + str(i) + '.' + ext
+def show_image(img_vec, img_filename, delete_after=True, i=0):
+    img_filename = finalize_filename(img_filename, i)
     save_img(img_vec, img_filename)
     os.system(f"open {img_filename}")
     if delete_after:
         time.sleep(-(-img_vec.shape[0]//256))
         os.system(f"rm {img_filename}")
 
-def finalize_filename(filename):
-    i = 0
+def finalize_filename(filename, i=0):
     name, ext = filename.split('.')
     filename = name + str(i) + '.' + ext
     while os.path.exists(filename):
