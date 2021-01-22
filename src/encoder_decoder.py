@@ -84,7 +84,7 @@ class EncoderDecoder(nn.Module):
         # decoder = CNN(shape=self.decoder_shape, stride=compression_factor)
         self.net.add_module('decoder', decoder)
 
-        for i in n_linear_final_layers:
+        for i in range(n_linear_final_layers):
             linear_layer = nn.Sequential(
                 nn.Dropout(),
                 nn.Linear(output_size, output_size),
