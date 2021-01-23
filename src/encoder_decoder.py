@@ -60,10 +60,10 @@ class EncoderDecoder(nn.Module):
         for i in range(n_linear_embedding_layers):
             linear_layer = nn.Sequential(
                 nn.Dropout(),
-                Linear2d(output_size**2, output_size**2),
+                Linear2d(res=True, in_features=output_size**2, out_features=output_size**2),
                 nn.ReLU(),
                 nn.Dropout(),
-                Linear2d(output_size**2, output_size**2),
+                Linear2d(res=True, in_features=output_size**2, out_features=output_size**2),
             )
             self.net.add_module(f'linear_embedding_layer{i}', linear_layer)
 
@@ -125,8 +125,15 @@ class EncoderDecoder(nn.Module):
         return tuple(net_shape)
 
 class Linear2d(nn.Linear):
+    def __init__(self, **kwargs):
+        self.res = kwargs.pop("res", False)
+        super().__init__(**kwargs)
+
     def forward(self, x: Tensor):
-        return super().forward(x.flatten(-2, -1)).reshape(x.shape)
+        y = super().forward(x.flatten(-2, -1)).reshape(x.shape)
+        if self.res:
+            y += x
+        return y
 
 class LinearBiAxis(nn.Module):
     def __init__(self, in_dim, out_dim, **kwargs):

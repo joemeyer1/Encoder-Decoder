@@ -15,7 +15,7 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-4,
+            learning_rate=1e-3,
             n_images_train=256,
             img_dim=512,
             embedding_size=128,
