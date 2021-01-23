@@ -10,7 +10,7 @@ from math import log
 
 from torch import nn, Tensor
 
-from src.cnn import CNN, ConvBlock
+from src.cnn import ConvBlock  # CNN, ConvBlock
 
 
 class EncoderDecoder(nn.Module):
@@ -60,10 +60,10 @@ class EncoderDecoder(nn.Module):
         for i in range(n_linear_embedding_layers):
             linear_layer = nn.Sequential(
                 nn.Dropout(),
-                nn.Linear(output_size, output_size),
+                Linear2d(output_size**2, output_size**2),
                 nn.ReLU(),
                 nn.Dropout(),
-                nn.Linear(output_size, output_size),
+                Linear2d(output_size**2, output_size**2),
             )
             self.net.add_module(f'linear_embedding_layer{i}', linear_layer)
 

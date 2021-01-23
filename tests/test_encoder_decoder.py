@@ -15,19 +15,19 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-3,
-            n_images_train=64,
+            learning_rate=1e-4,
+            n_images_train=256,
             img_dim=512,
-            embedding_size=16,
+            embedding_size=128,
             compression_factor=2,
-            cnn_shape=(1,3,3,1),
-            n_linear_embedding_layers=0,
+            cnn_shape=(1,3,1),
+            n_linear_embedding_layers=1,
             n_linear_final_layers=0,
             delete_images=False,
             epochs=800,
             batch_size=16,
             net_to_load='',
-            i=24,
+            i=60,
     ):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images

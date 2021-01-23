@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
+import torch
 from torch import nn
 
 
-class CNN(nn.Module):
-	def __init__(self, shape = (3, 3, 3, 3, 1), stride=1):
-		super(CNN, self).__init__()
-
-		self.net = nn.Sequential()
-
-		for i in range(len(shape)):
-			kernel_size = shape[i]
-			layer = ConvBlock(kernel_size, stride)
-			layer_name = "block"+str(i)
-			self.net.add_module(layer_name, layer)
-
-	def forward(self, x):
-		return self.net(x)
+# class CNN(nn.Module):
+# 	def __init__(self, shape, stride):
+# 		super(CNN, self).__init__()
+#
+# 		self.net = nn.Sequential()
+#
+# 		for i in range(len(shape)):
+# 			kernel_size = shape[i]
+# 			layer = ConvBlock(kernel_size, stride)
+# 			layer_name = "block"+str(i)
+# 			self.net.add_module(layer_name, layer)
+#
+# 	def forward(self, x):
+# 		return self.net(x)
 
 
 class ResConvBlock(nn.Module):
@@ -51,7 +52,7 @@ class ConvBlock(nn.Module):
 		)
 
 		if scale_factor:
-			pool_layer = nn.UpsamplingNearest2d(scale_factor=scale_factor)
+			pool_layer = RandomUpsample(scale_factor=scale_factor, weight_rand=1)
 		else:
 			pool_layer = nn.MaxPool2d(
 				kernel_size=kernel_size,
@@ -70,5 +71,13 @@ class ConvBlock(nn.Module):
 		return self.block(x)
 
 
+class RandomUpsample(nn.UpsamplingNearest2d):
+	def __init__(self, **kwargs):
+		self.weight_rand = kwargs.pop("weight_rand", 1.)
+		super().__init__(**kwargs)
+
+	def forward(self, x):
+		y = super().forward(x)
+		return y + (torch.randn(y.shape) * self.weight_rand)
 
 # UPSAMPLE: add a sample from normal distrubtion to upsample to avoid uniformity
