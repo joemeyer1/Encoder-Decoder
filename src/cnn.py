@@ -68,3 +68,7 @@ class ConvBlock(nn.Module):
 
 	def forward(self, x):
 		return self.block(x)
+
+
+
+# UPSAMPLE: add a sample from normal distrubtion to upsample to avoid uniformity

@@ -44,7 +44,7 @@ class EncoderDecoder(nn.Module):
         encoder_length = max(len(cnn_shape), int(log(output_size / self.embedding_size, compression_factor)))
         for i in range(encoder_length):
             stride = compression_factor if output_size // compression_factor >= embedding_size else 1
-            kernel_size = cnn_shape[i] if i < len(cnn_shape) else cnn_shape[-1]
+            kernel_size = cnn_shape[i] if i < len(cnn_shape) else max(cnn_shape[-1], stride)
             self.encoder_shape.append((kernel_size, stride))
             conv_block = ConvBlock(kernel_size, stride)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
@@ -91,9 +91,20 @@ class EncoderDecoder(nn.Module):
                 nn.ReLU(),
                 nn.Dropout(),
                 nn.Linear(output_size, output_size),
-                nn.Linear(output_size, output_size),
             )
             self.net.add_module(f'linear_final_layer{i}', linear_layer)
+
+        # linear_output_layer = nn.Sequential(
+        #         Flattener(),
+        #         nn.Linear(output_size**2, output_size**2),
+        #         Deflattener(shape=(output_size, output_size))
+        # )
+
+        # below yields  stripes only
+        # linear_output_layer = Linear2d(output_size**2, output_size**2)
+        # linear_output_layer = LinearBiAxis(output_size, output_size)
+        #
+        # self.net.add_module('linear_output_layer', linear_output_layer)
 
         print(self.net)
 
@@ -112,3 +123,27 @@ class EncoderDecoder(nn.Module):
         if net_type == 'decoder':
             net_shape.reverse()
         return tuple(net_shape)
+
+class Linear2d(nn.Linear):
+    def forward(self, x: Tensor):
+        return super().forward(x.flatten(-2, -1)).reshape(x.shape)
+
+class LinearBiAxis(nn.Module):
+    def __init__(self, in_dim, out_dim, **kwargs):
+        super().__init__(**kwargs)
+        self.linear0 = nn.Linear(in_dim, out_dim)
+        self.linear1 = nn.Linear(in_dim, out_dim)
+    def forward(self, x: Tensor):
+        return self.linear0(x) + self.linear1(x.transpose(-2, -1))
+
+# class Flattener(nn.Module):
+#     def forward(self, x: Tensor):
+#         return x.flatten(-2, -1)
+#
+# class Deflattener(nn.Module):
+#     def __init__(self, shape):
+#         super().__init__()
+#         self.shape = shape
+#
+#     def forward(self, x: Tensor):
+#         return x.reshape(self.shape)
