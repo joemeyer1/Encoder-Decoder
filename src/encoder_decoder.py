@@ -21,6 +21,7 @@ class EncoderDecoder(nn.Module):
             cnn_shape=None,
             compression_factor=2,
             n_linear_embedding_layers=1,
+            res_weight=2,
             n_linear_final_layers=1,
     ):
         super(EncoderDecoder, self).__init__()
@@ -60,10 +61,10 @@ class EncoderDecoder(nn.Module):
         for i in range(n_linear_embedding_layers):
             linear_layer = nn.Sequential(
                 nn.Dropout(),
-                Linear2d(res_weight=.2, in_features=output_size**2, out_features=output_size**2),
+                Linear2d(res_weight=res_weight, in_features=output_size**2, out_features=output_size**2),
                 nn.ReLU(),
                 nn.Dropout(),
-                Linear2d(res_weight=.2, in_features=output_size**2, out_features=output_size**2),
+                Linear2d(res_weight=res_weight, in_features=output_size**2, out_features=output_size**2),
             )
             self.net.add_module(f'linear_embedding_layer{i}', linear_layer)
 
@@ -71,6 +72,7 @@ class EncoderDecoder(nn.Module):
         # add decoder
         self.decoder_shape = self.encoder_shape
         self.decoder_shape.reverse()
+        self.decoder_shape += [(1, 1)]
         decoder = nn.Sequential()
         i = 0
         for kernel_size, stride in self.decoder_shape:
@@ -87,10 +89,10 @@ class EncoderDecoder(nn.Module):
         for i in range(n_linear_final_layers):
             linear_layer = nn.Sequential(
                 nn.Dropout(),
-                nn.Linear(output_size, output_size),
+                Linear2d(res_weight=res_weight, in_features=output_size**2, out_features=output_size**2),
                 nn.ReLU(),
                 nn.Dropout(),
-                nn.Linear(output_size, output_size),
+                Linear2d(res_weight=res_weight, in_features=output_size**2, out_features=output_size**2),
             )
             self.net.add_module(f'linear_final_layer{i}', linear_layer)
 
