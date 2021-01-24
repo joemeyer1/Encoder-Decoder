@@ -30,8 +30,8 @@ class EncoderDecoder(nn.Module):
 
         # # round down to next highest power of 2
         # self.img_size = (2**int(log2(img_size[0])), 2**int(log2(img_size[1])))
-        assert img_size[0]%2 == 0
-        assert img_size[1]%2 == 0
+        assert img_size[0] % 2 == 0
+        assert img_size[1] % 2 == 0
         self.img_size = img_size
         self.embedding_size = compression_factor**int(log(embedding_size, compression_factor))
         print(f"embedding size: {self.embedding_size}")
