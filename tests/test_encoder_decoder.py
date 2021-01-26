@@ -53,7 +53,7 @@ class TestEncoderDecoder(unittest.TestCase):
         encoded_decoded_image_before_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_before_training[0], "encoded_decoded_images_before_training/encoded_decoded_image_before_training.jpg", delete_after=delete_images, i=i)
 
-        encoded_decoded_random_img_before_training = encoder_decoder.forward(torch.randn(image_data[:1].shape) * 128)
+        encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
         train_net(net=encoder_decoder, data=image_data, epochs=epochs, batch_size=batch_size, verbose=True, lr=learning_rate, save_best_net=False)
@@ -67,7 +67,7 @@ class TestEncoderDecoder(unittest.TestCase):
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
 
-        encoded_decoded_random_img = encoder_decoder.forward(torch.randn(encoded_decoded_image_after_training[:1].shape)*128)
+        encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(encoded_decoded_image_after_training[:1].shape))*128)
         show_image(encoded_decoded_random_img[0], "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
 
         deep_encoded_decoded_random_img = encoded_decoded_random_img
@@ -121,9 +121,9 @@ class TestEncoderDecoder(unittest.TestCase):
         self.assertTrue(image_data is not None)
 
     # @unittest.skip("skip")
-    def test_pretrained_autoencoder(
+    def test_pretrained_autoencoder_from_image(
             self,
-            output_method='from_image',
+            generate_from='randu_image',
             double_process=False,  # whether to run input through network twice
             delete_images=True,
             net_to_load='nets/net90.pickle',
@@ -136,20 +136,61 @@ class TestEncoderDecoder(unittest.TestCase):
         self.make_image_directories()
 
         encoder_decoder = load_net(net_to_load)
-        assert output_method in ("from_image", "from_random_embedding")
-        if output_method == "from_image":
+        # assert output_method in ("from_image", "from_random_embedding")
+        if generate_from == "image":
             input_image = get_image_data(n=1, img_size=encoder_decoder.img_size)
             output_image = encoder_decoder.forward(input_image[:1])
             show_image(input_image[0], "original_images/image.jpg", delete_after=delete_images, i=i)
+        elif generate_from == "randn_image":
+            input_image = abs(torch.randn(size=(1, 3)+tuple(encoder_decoder.img_size)))*100
+            output_image = encoder_decoder.forward(input_image[:1])
+            show_image(input_image[0], "original_images/rand_norm_image.jpg", delete_after=delete_images, i=i)
+        elif generate_from == "randu_image":
+            input_image = torch.randint(low=0, high=256, size=(1, 3)+tuple(encoder_decoder.img_size), dtype=torch.float32)
+            output_image = encoder_decoder.forward(input_image[:1])
+            show_image(input_image[0], "original_images/rand_uniform_image.jpg", delete_after=delete_images, i=i)
         else:
-            input_embedding = torch.randn(size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size))*100
-            output_image = encoder_decoder.net[1:](input_embedding)
+            raise Exception("Must specify generate_from='image', 'randn' or 'randu'")
         if double_process:
             output_image = encoder_decoder(output_image)
         time.sleep(3)
         show_image(
             output_image[0],
-            f"{output_method}.jpg",
+            f"{generate_from}.jpg",
+            delete_after=delete_images,
+            i=i,
+        )
+
+    @unittest.skip("skip")
+    def test_pretrained_autoencoder_from_embedding(
+            self,
+            generate_from='randu',
+            double_process=True,  # whether to run input through network twice
+            delete_images=False,
+            net_to_load='nets/net90.pickle',
+            i=1000,
+    ):
+        # from src.data_utils import get_image_data
+        from src.image_functions import show_image  # , show_images
+        import time
+
+        self.make_image_directories()
+
+        encoder_decoder = load_net(net_to_load)
+        # assert output_method in ("from_image", "from_random_embedding")
+        if generate_from == "randn":
+            input_embedding = abs(torch.randn(size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size))) * 100
+        elif generate_from == 'randu':
+            input_embedding = torch.randint(low=0, high=128, size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size), dtype=torch.float32)
+        else:
+            raise Exception("Must specify generate_from='randn' or 'randu'")
+        output_image = encoder_decoder.net[1:](input_embedding)
+        if double_process:
+            output_image = encoder_decoder(output_image)
+        time.sleep(3)
+        show_image(
+            output_image[0],
+            f"{generate_from}.jpg",
             delete_after=delete_images,
             i=i,
         )
