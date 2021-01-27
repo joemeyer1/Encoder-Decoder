@@ -17,7 +17,17 @@ from src.image_functions import finalize_filename
 #     encoder_decoder.train(img_data)
 #     save_net(encoder_decoder, "encoder_decoder")
 
-def train_net(net, data, epochs=1000, batch_size=100, test_proportion=.1, verbose=True, lr=.001, save_best_net='min_test_loss'):
+def train_net(
+        net,
+        data,
+        epochs=1000,
+        batch_size=100,
+        test_proportion=.125,
+        verbose=True,
+        lr=.001,
+        save_best_net='min_test_loss',
+        max_n_epochs_rising_loss=10,
+):
 
     assert len(data) > 0
     assert test_proportion < 1
@@ -33,9 +43,9 @@ def train_net(net, data, epochs=1000, batch_size=100, test_proportion=.1, verbos
     best_net, min_loss = None, float('inf')
     with tqdm(range(epochs)) as epoch_counter:
         try:
-            # tot_loss = 0
+            n_epochs_rising_loss = 0
             for epoch in epoch_counter:
-                tot_epoch_loss = 0
+                tot_epoch_train_loss = 0
                 n_test_data = int(len(data) * test_proportion)
                 n_train_data = len(data) - n_test_data
                 train_data = data[:n_train_data]
@@ -61,29 +71,34 @@ def train_net(net, data, epochs=1000, batch_size=100, test_proportion=.1, verbos
                         optimizer.step()
                         # report loss
                         # print("reporting")
-                        tot_epoch_loss += loss.item()
+                        tot_epoch_train_loss += loss.item()
                         if verbose:
-                            running_loss = tot_epoch_loss / float(batch_i + 1)
+                            running_loss = tot_epoch_train_loss / float(batch_i + 1)
                             batch_counter.desc = "Epoch {} Loss: {}".format(epoch, running_loss)  # str(running_loss)
                         # epoch_counter.write("\t Epoch {} Running Loss: {}\n".format(epoch, running_loss))
                     batch_counter.close()
                 # report loss
-                # tot_loss += tot_epoch_loss
-                epoch_train_loss = tot_epoch_loss / len(train_data)
-                epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
-
-                def get_test_loss():
-                    test_output = net(test_data)
-                    test_loss = loss_fn(test_output, test_data).item()
-                    return test_loss
-
-                test_loss = get_test_loss()
-                epoch_test_loss = min(test_loss, min_loss)
-                epoch_counter.write("\t Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
-                if save_best_net == 'min_train_loss' and epoch_train_loss < min_loss:
-                    best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
-                elif save_best_net == 'min_test_loss' and epoch_test_loss < min_loss:
-                    best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
+                # tot_loss += tot_epoch_train_loss
+                epoch_train_loss = tot_epoch_train_loss / len(batches)
+                # get test loss
+                test_output = net(test_data)
+                epoch_test_loss = loss_fn(test_output, test_data).item()
+                if save_best_net == 'min_test_loss':
+                    if epoch_test_loss < min_loss:
+                        best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
+                        n_epochs_rising_loss = 0
+                    else:
+                        n_epochs_rising_loss += 1
+                    epoch_counter.write(" Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
+                else:
+                    if save_best_net == 'min_train_loss' and epoch_train_loss < min_loss:
+                        best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
+                        n_epochs_rising_loss = 0
+                    else:
+                        n_epochs_rising_loss += 1
+                    epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
+                if save_best_net and n_epochs_rising_loss > max_n_epochs_rising_loss:
+                    return best_net
                 # epoch_counter.desc = "Total Loss: " + str(tot_loss)
         except:
             print("Interrupted.")
