@@ -44,12 +44,12 @@ def train_net(
     with tqdm(range(epochs)) as epoch_counter:
         try:
             n_epochs_rising_loss = 0
+            n_test_data = int(len(data) * test_proportion)
+            n_train_data = len(data) - n_test_data
+            train_data = data[:n_train_data]
+            test_data = data[n_train_data:]
             for epoch in epoch_counter:
                 tot_epoch_train_loss = 0
-                n_test_data = int(len(data) * test_proportion)
-                n_train_data = len(data) - n_test_data
-                train_data = data[:n_train_data]
-                test_data = data[n_train_data:]
                 batches = batch(train_data, batch_size)
                 with tqdm(range(len(batches)), leave=False) as batch_counter:
                     for batch_i in batch_counter:
