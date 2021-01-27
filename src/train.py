@@ -125,10 +125,13 @@ def train_net(
 
 def graph_loss(train_loss, test_loss):
     from matplotlib import pyplot as plt
-    plt.plot(train_loss)
-    plt.plot(test_loss)
-    plt.ioff()
-    plt.show(block=False)
+    plt.plot(train_loss, label="Train Loss")
+    plt.plot(test_loss, label="Test Loss")
+    plt.legend()
+    fig_name = finalize_filename('losses/loss.png')
+    plt.savefig(fig_name)
+    import os
+    os.system(f"open {fig_name}")
 
 def save_net(net, net_name, i=None):
     import pickle

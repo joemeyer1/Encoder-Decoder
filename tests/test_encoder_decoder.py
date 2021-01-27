@@ -12,22 +12,24 @@ from src.train import train_net, save_net, load_net
 
 class TestEncoderDecoder(unittest.TestCase):
 
-    @unittest.skip
+    # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
             learning_rate=1e-3,
             n_images_train=512,
-            img_dim=512,
-            embedding_size=16,
+            img_dim=128,
+            embedding_size=64,
             compression_factor=2,
             cnn_shape=(3,3,1),
             n_linear_embedding_layers=1,
             n_linear_final_layers=0,
             delete_images=False,
-            epochs=800,
-            batch_size=16,
+            epochs=8000,
+            batch_size=8,
+            save_best_net='min_test_loss',
+            max_n_epochs_rising_loss=10,
             net_to_load='',
-            i=90,
+            i=145,
     ):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
@@ -56,7 +58,16 @@ class TestEncoderDecoder(unittest.TestCase):
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
-        train_net(net=encoder_decoder, data=image_data, epochs=epochs, batch_size=batch_size, verbose=True, lr=learning_rate, save_best_net=False)
+        train_net(
+            net=encoder_decoder,
+            data=image_data,
+            epochs=epochs,
+            batch_size=batch_size,
+            verbose=True,
+            lr=learning_rate,
+            save_best_net=save_best_net,
+            max_n_epochs_rising_loss=max_n_epochs_rising_loss,
+        )
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
         encoded_decoded_image_after_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_after_training[0], "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg", delete_after=delete_images, i=i)
@@ -86,7 +97,7 @@ class TestEncoderDecoder(unittest.TestCase):
         show_image(image_data[0])
         y1 = c.forward(image_data[:1])
         show_image(y1[0])
-        train_net(net=c, data=image_data, epochs=50, batch_size=1, verbose=True, lr=1e-5, save_best_net=False)
+        train_net(net=c, data=image_data, epochs=50, batch_size=1, verbose=True, lr=1e-5, save_best_net='min_test_loss')
         y = c.forward(image_data[:1])
         show_image(y[0])
         self.assertTrue(image_data is not None)
@@ -96,7 +107,7 @@ class TestEncoderDecoder(unittest.TestCase):
         x = torch.randn(4, 3, 16, 16) * 100
         c = EncoderDecoder(img_size=x.shape[-2:], embedding_size=2)
         y1 = c.forward(x)
-        train_net(net=c, data=x, epochs=10, batch_size=2, verbose=True, lr=.0001, save_best_net=False)
+        train_net(net=c, data=x, epochs=10, batch_size=2, verbose=True, lr=.0001, save_best_net='min_test_loss')
         # from src.batch_data import batch
         y2 = c.forward(x)
         y2_beats_y1 = torch.sum(abs(y2 - x)) < torch.sum(abs(y1 - x))
@@ -120,7 +131,7 @@ class TestEncoderDecoder(unittest.TestCase):
         show_image(image_data[0])
         self.assertTrue(image_data is not None)
 
-    # @unittest.skip("skip")
+    @unittest.skip("skip")
     def test_pretrained_autoencoder_from_image(
             self,
             generate_from='randu_image',
@@ -272,6 +283,7 @@ class TestEncoderDecoder(unittest.TestCase):
             'encoded_decoded_images_after_training',
             'encoded_decoded_random_imgs_after_training',
             'double_encoded_decoded_random_imgs_after_training',
+            'losses',
         ]
         for dir_name in image_directories:
             if not os.path.isdir(dir_name):
