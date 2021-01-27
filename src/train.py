@@ -17,7 +17,10 @@ from src.image_functions import finalize_filename
 #     encoder_decoder.train(img_data)
 #     save_net(encoder_decoder, "encoder_decoder")
 
-def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, save_best_net=True):
+def train_net(net, data, epochs=1000, batch_size=100, test_proportion=.1, verbose=True, lr=.001, save_best_net='min_test_loss'):
+
+    assert len(data) > 0
+    assert test_proportion < 1
 
     # train net
     import torch
@@ -30,10 +33,14 @@ def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, sav
     best_net, min_loss = None, float('inf')
     with tqdm(range(epochs)) as epoch_counter:
         try:
-            tot_loss = 0.
+            # tot_loss = 0
             for epoch in epoch_counter:
-                tot_batch_loss = 0
-                batches = batch(data, batch_size)
+                tot_epoch_loss = 0
+                n_test_data = int(len(data) * test_proportion)
+                n_train_data = len(data) - n_test_data
+                train_data = data[:n_train_data]
+                test_data = data[n_train_data:]
+                batches = batch(train_data, batch_size)
                 with tqdm(range(len(batches)), leave=False) as batch_counter:
                     for batch_i in batch_counter:
                         features = batches[batch_i]
@@ -54,22 +61,30 @@ def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, sav
                         optimizer.step()
                         # report loss
                         # print("reporting")
-                        tot_batch_loss += loss.item()
+                        tot_epoch_loss += loss.item()
                         if verbose:
-                            running_loss = tot_batch_loss / float(batch_i + 1)
-                            batch_counter.desc = "Epoch {} Loss: {}".format(epoch,
-                                                                            running_loss)  # str(running_loss)
+                            running_loss = tot_epoch_loss / float(batch_i + 1)
+                            batch_counter.desc = "Epoch {} Loss: {}".format(epoch, running_loss)  # str(running_loss)
                         # epoch_counter.write("\t Epoch {} Running Loss: {}\n".format(epoch, running_loss))
                     batch_counter.close()
                 # report loss
-                tot_loss += tot_batch_loss
-                avg_loss = tot_loss / ((epoch + 1) * len(batches))
-                epoch_loss = tot_batch_loss / float(len(batches))
-                # epoch_counter.write("")
-                epoch_counter.write(" Epoch {} Avg Loss: {}\n".format(epoch, epoch_loss))
-                if save_best_net and epoch_loss < min_loss:
-                    best_net, min_loss = deepcopy(net), deepcopy(avg_loss)
-                epoch_counter.desc = "Total Loss: " + str(avg_loss)
+                # tot_loss += tot_epoch_loss
+                epoch_train_loss = tot_epoch_loss / len(train_data)
+                epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
+
+                def get_test_loss():
+                    test_output = net(test_data)
+                    test_loss = loss_fn(test_output, test_data).item()
+                    return test_loss
+
+                test_loss = get_test_loss()
+                epoch_test_loss = min(test_loss, min_loss)
+                epoch_counter.write("\t Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
+                if save_best_net == 'min_train_loss' and epoch_train_loss < min_loss:
+                    best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
+                elif save_best_net == 'min_test_loss' and epoch_test_loss < min_loss:
+                    best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
+                # epoch_counter.desc = "Total Loss: " + str(tot_loss)
         except:
             print("Interrupted.")
             if save_best_net:
@@ -81,7 +96,6 @@ def train_net(net, data, epochs=1000, batch_size=100, verbose=True, lr=.001, sav
         return best_net
     else:
         return net
-
 
 def save_net(net, net_name, i=None):
     import pickle
