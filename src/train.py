@@ -48,6 +48,8 @@ def train_net(
             n_train_data = len(data) - n_test_data
             train_data = data[:n_train_data]
             test_data = data[n_train_data:]
+            train_losses = []
+            test_losses = []
             for epoch in epoch_counter:
                 tot_epoch_train_loss = 0
                 batches = batch(train_data, batch_size)
@@ -74,22 +76,24 @@ def train_net(
                         tot_epoch_train_loss += loss.item()
                         if verbose:
                             running_loss = tot_epoch_train_loss / float(batch_i + 1)
-                            batch_counter.desc = "Epoch {} Loss:\t{}".format(epoch, running_loss)  # str(running_loss)
+                            batch_counter.desc = "Epoch {} Loss: {}".format(epoch, running_loss)  # str(running_loss)
                         # epoch_counter.write("\t Epoch {} Running Loss: {}\n".format(epoch, running_loss))
                     batch_counter.close()
                 # report loss
                 # tot_loss += tot_epoch_train_loss
                 epoch_train_loss = tot_epoch_train_loss / len(batches)
+                train_losses.append(epoch_train_loss)
                 # get test loss
                 test_output = net(test_data)
                 epoch_test_loss = loss_fn(test_output, test_data).item()
+                test_losses.append(epoch_test_loss)
                 if save_best_net == 'min_test_loss':
                     if epoch_test_loss < min_loss:
                         best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
                         n_epochs_rising_loss = 0
                     else:
                         n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Test Loss:\t{}\n".format(epoch, epoch_test_loss))
+                    epoch_counter.write(" Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
                 else:
                     if save_best_net == 'min_train_loss':
                         if epoch_train_loss < min_loss:
@@ -97,21 +101,34 @@ def train_net(
                             n_epochs_rising_loss = 0
                         else:
                             n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Train Loss:\t{}\n".format(epoch, epoch_train_loss))
+                    epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
                 if save_best_net and n_epochs_rising_loss > max_n_epochs_rising_loss:
+                    if verbose:
+                        graph_loss(train_loss=train_losses, test_loss=test_losses)
                     return best_net
                 # epoch_counter.desc = "Total Loss: " + str(tot_loss)
         except:
             print("Interrupted.")
+            if verbose:
+                graph_loss(train_loss=train_losses, test_loss=test_losses)
             if save_best_net:
                 return best_net
             else:
                 return net
     print('\n')
+    if verbose:
+        graph_loss(train_loss=train_losses, test_loss=test_losses)
     if save_best_net:
         return best_net
     else:
         return net
+
+def graph_loss(train_loss, test_loss):
+    from matplotlib import pyplot as plt
+    plt.plot(train_loss)
+    plt.plot(test_loss)
+    plt.ioff()
+    plt.show(block=False)
 
 def save_net(net, net_name, i=None):
     import pickle
