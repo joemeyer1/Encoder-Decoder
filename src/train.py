@@ -74,7 +74,7 @@ def train_net(
                         tot_epoch_train_loss += loss.item()
                         if verbose:
                             running_loss = tot_epoch_train_loss / float(batch_i + 1)
-                            batch_counter.desc = "Epoch {} Loss: {}".format(epoch, running_loss)  # str(running_loss)
+                            batch_counter.desc = "Epoch {} Loss:\t{}".format(epoch, running_loss)  # str(running_loss)
                         # epoch_counter.write("\t Epoch {} Running Loss: {}\n".format(epoch, running_loss))
                     batch_counter.close()
                 # report loss
@@ -89,14 +89,15 @@ def train_net(
                         n_epochs_rising_loss = 0
                     else:
                         n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
+                    epoch_counter.write(" Epoch {} Avg Test Loss:\t{}\n".format(epoch, epoch_test_loss))
                 else:
-                    if save_best_net == 'min_train_loss' and epoch_train_loss < min_loss:
-                        best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
-                        n_epochs_rising_loss = 0
-                    else:
-                        n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
+                    if save_best_net == 'min_train_loss':
+                        if epoch_train_loss < min_loss:
+                            best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
+                            n_epochs_rising_loss = 0
+                        else:
+                            n_epochs_rising_loss += 1
+                    epoch_counter.write(" Epoch {} Avg Train Loss:\t{}\n".format(epoch, epoch_train_loss))
                 if save_best_net and n_epochs_rising_loss > max_n_epochs_rising_loss:
                     return best_net
                 # epoch_counter.desc = "Total Loss: " + str(tot_loss)
