@@ -37,6 +37,15 @@ class EncoderDecoder(nn.Module):
         self.embedding_size = compression_factor**int(log(embedding_size, compression_factor))
         print(f"embedding size: {self.embedding_size}")
 
+        if activation.lower() == 'relu':
+            activation_fn = nn.ReLU
+        elif activation.lower() == 'tanh':
+            activation_fn = scaled_tanh
+        else:
+            assert isinstance(activation, nn.Module), \
+                "You must pass 'relu', 'tanh', or a valid activation fn for arg 'activation'."
+            activation_fn = activation
+
         # if cnn_shape == None:
         #     cnn_shape = self.get_net_shape('encoder')
 
@@ -49,13 +58,10 @@ class EncoderDecoder(nn.Module):
             kernel_size = cnn_shape[i] if i < len(cnn_shape) else max(cnn_shape[-1], stride)
             self.encoder_shape.append((kernel_size, stride))
             if i + 1 < encoder_length:
-                if activation.lower() == 'relu':
-                    activation_fn = nn.ReLU
-                elif activation.lower() == 'tanh':
-                    activation_fn = scaled_tanh
+                conv_activation = activation_fn
             else:
-                activation_fn = nn.Identity
-            conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=activation_fn)
+                conv_activation = nn.Identity
+            conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=conv_activation)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             encoder.add_module(f'conv_block{i}', conv_block)
             output_size //= stride
@@ -82,20 +88,16 @@ class EncoderDecoder(nn.Module):
         self.decoder_shape.reverse()
         self.decoder_shape += [(1, 1)]
         decoder = nn.Sequential()
-        i = 0
-        for kernel_size, stride in self.decoder_shape:
+        for i in range(len(self.decoder_shape)):
+            kernel_size, stride = self.decoder_shape[i]
             if i + 1 < len(self.decoder_shape):
-                if activation.lower() == 'relu':
-                    activation_fn = nn.ReLU
-                elif activation.lower() == 'tanh':
-                    activation_fn = scaled_tanh
+                conv_activation = activation_fn
             else:
-                activation_fn = nn.Identity
-            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=activation_fn)
+                conv_activation = nn.Identity
+            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=conv_activation)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
             output_size *= stride
-            i += 1
 
         print(f"decoder shape: {self.decoder_shape}")
         # decoder = CNN(shape=self.decoder_shape, stride=compression_factor)

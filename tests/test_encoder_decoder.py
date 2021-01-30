@@ -15,21 +15,23 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-3,
-            n_images_train=512,
-            img_dim=128,
+            learning_rate=1e-4,
+            n_images_train=2048,
+            img_dim=512,
             embedding_size=64,
             compression_factor=2,
-            cnn_shape=(3,3,1),
-            n_linear_embedding_layers=1,
+            cnn_shape=(5,3,5,3,3,1),
+            res_weight=.05,
+            activation='tanh',
+            n_linear_embedding_layers=0,
             n_linear_final_layers=0,
             delete_images=False,
             epochs=8000,
-            batch_size=8,
+            batch_size=4,
             save_best_net='min_test_loss',
             max_n_epochs_rising_loss=10,
             net_to_load='',
-            i=145,
+            i=167,
     ):
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
@@ -44,7 +46,8 @@ class TestEncoderDecoder(unittest.TestCase):
                 embedding_size=embedding_size,
                 cnn_shape=cnn_shape,
                 compression_factor=compression_factor,
-                res_weight=2,
+                res_weight=res_weight,
+                activation=activation,
                 n_linear_embedding_layers=n_linear_embedding_layers,
                 n_linear_final_layers=n_linear_final_layers,
             )
@@ -175,10 +178,11 @@ class TestEncoderDecoder(unittest.TestCase):
     @unittest.skip("skip")
     def test_pretrained_autoencoder_from_embedding(
             self,
-            generate_from='randu',
+            generate_from='both',
+            brightness=200,
             double_process=True,  # whether to run input through network twice
             delete_images=False,
-            net_to_load='nets/net90.pickle',
+            net_to_load='nets/net161.pickle',
             i=1000,
     ):
         # from src.data_utils import get_image_data
@@ -189,10 +193,14 @@ class TestEncoderDecoder(unittest.TestCase):
 
         encoder_decoder = load_net(net_to_load)
         # assert output_method in ("from_image", "from_random_embedding")
+        randn_input_embedding = lambda: abs(torch.randn(size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size))) * brightness
+        randu_input_embedding = lambda: torch.randint(low=-brightness, high=brightness, size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size), dtype=torch.float32)
         if generate_from == "randn":
-            input_embedding = abs(torch.randn(size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size))) * 100
+            input_embedding = randn_input_embedding()
         elif generate_from == 'randu':
-            input_embedding = torch.randint(low=0, high=128, size=(1, 3, encoder_decoder.embedding_size, encoder_decoder.embedding_size), dtype=torch.float32)
+            input_embedding = randu_input_embedding()
+        elif generate_from == 'both':
+            input_embedding = randn_input_embedding() + randu_input_embedding()
         else:
             raise Exception("Must specify generate_from='randn' or 'randu'")
         output_image = encoder_decoder.net[1:](input_embedding)
