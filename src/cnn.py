@@ -22,7 +22,7 @@ from torch import nn
 
 
 class ConvBlock(nn.Module):
-	def __init__(self, kernel_size=3, stride=1, scale_factor=None):
+	def __init__(self, kernel_size=3, stride=1, scale_factor=None, activation_fn=nn.ReLU):
 		# make kernel odd
 		if kernel_size % 2 == 0:
 			kernel_size += 1
@@ -51,7 +51,7 @@ class ConvBlock(nn.Module):
 		self.block = nn.Sequential(
 			nn.Dropout(),
 			conv_layer,
-			nn.ReLU(),
+			activation_fn(),
 			pool_layer,
 		)
 
@@ -68,4 +68,8 @@ class RandomUpsample(nn.UpsamplingNearest2d):
 		y = super().forward(x)
 		return y + (torch.randn(y.shape) * self.weight_rand)
 
-# UPSAMPLE: add a sample from normal distrubtion to upsample to avoid uniformity
+# UPSAMPLE: add a sample from normal distribution to upsample to avoid uniformity
+
+class scaled_tanh(nn.Tanh):
+	def forward(self, x):
+		return (.5 * super().forward(x)) + .5

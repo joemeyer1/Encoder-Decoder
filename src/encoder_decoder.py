@@ -10,7 +10,7 @@ from math import log
 
 from torch import nn, Tensor
 
-from src.cnn import ConvBlock  # CNN, ConvBlock
+from src.cnn import ConvBlock, scaled_tanh  # CNN, ConvBlock
 
 
 class EncoderDecoder(nn.Module):
@@ -21,7 +21,8 @@ class EncoderDecoder(nn.Module):
             cnn_shape=None,
             compression_factor=2,
             n_linear_embedding_layers=1,
-            res_weight=2,
+            res_weight=0,
+            activation='relu',
             n_linear_final_layers=1,
     ):
         super(EncoderDecoder, self).__init__()
@@ -47,7 +48,14 @@ class EncoderDecoder(nn.Module):
             stride = compression_factor if output_size // compression_factor >= embedding_size else 1
             kernel_size = cnn_shape[i] if i < len(cnn_shape) else max(cnn_shape[-1], stride)
             self.encoder_shape.append((kernel_size, stride))
-            conv_block = ConvBlock(kernel_size, stride)
+            if i + 1 < encoder_length:
+                if activation.lower() == 'relu':
+                    activation_fn = nn.ReLU
+                elif activation.lower() == 'tanh':
+                    activation_fn = scaled_tanh
+            else:
+                activation_fn = nn.Identity
+            conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=activation_fn)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             encoder.add_module(f'conv_block{i}', conv_block)
             output_size //= stride
@@ -76,7 +84,14 @@ class EncoderDecoder(nn.Module):
         decoder = nn.Sequential()
         i = 0
         for kernel_size, stride in self.decoder_shape:
-            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride)
+            if i + 1 < len(self.decoder_shape):
+                if activation.lower() == 'relu':
+                    activation_fn = nn.ReLU
+                elif activation.lower() == 'tanh':
+                    activation_fn = scaled_tanh
+            else:
+                activation_fn = nn.Identity
+            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=activation_fn)
             # linear_layer = nn.Linear(output_size, output_size // compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
             output_size *= stride
