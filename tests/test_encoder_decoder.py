@@ -15,19 +15,19 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-4,
-            n_images_train=2048,
+            learning_rate=1e-3,
+            n_images_train=512,
             img_dim=512,
-            embedding_size=64,
+            embedding_size=16,
             compression_factor=2,
-            cnn_shape=(5,3,5,3,3,1),
+            cnn_shape=(3,1),
             res_weight=.05,
             activation='tanh',
-            n_linear_embedding_layers=0,
+            n_linear_embedding_layers=1,
             n_linear_final_layers=0,
             delete_images=False,
             epochs=8000,
-            batch_size=4,
+            batch_size=8,
             save_best_net='min_test_loss',
             max_n_epochs_rising_loss=10,
             net_to_load='',
@@ -40,9 +40,10 @@ class TestEncoderDecoder(unittest.TestCase):
         self.make_image_directories()
 
         image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
+        assert image_data.shape[-2] == img_dim
         if not net_to_load:
             encoder_decoder = EncoderDecoder(
-                img_size=image_data.shape[-2:],
+                img_dim=img_dim,
                 embedding_size=embedding_size,
                 cnn_shape=cnn_shape,
                 compression_factor=compression_factor,
