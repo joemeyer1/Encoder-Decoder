@@ -7,15 +7,6 @@
 # from src.data_utils import fetch_img_data
 from src.data_utils import finalize_filename
 
-# def train(img_size: Tuple[int] = (256, 256), embedding_size: int = 64, data_dirname: str = "img_data"):
-#     """Train and save an encoder-decoder."""
-#
-#     # encoder = Encoder(img_size=img_size, embedding_size=embedding_size)
-#     # decoder = Decoder(img_size=img_size, embedding_size=embedding_size)
-#     encoder_decoder = EncoderDecoder(img_size=img_size, embedding_size=embedding_size)
-#     img_data = fetch_img_data(data_dirname)
-#     encoder_decoder.train(img_data)
-#     save_net(encoder_decoder, "encoder_decoder")
 
 def train_net(
         net,
@@ -52,23 +43,11 @@ def train_net(
                 with tqdm(range(len(batches)), leave=False) as batch_counter:
                     for batch_i in batch_counter:
                         features = batches[batch_i]
-                        # prepare for backprop
                         optimizer.zero_grad()
-                        # compute prediction
-                        # print("getting output")
                         output = net(features)
-                        # print("out: {}\n\tlabel: {}\n".format(output, labels))
-                        # compute loss
-                        # print("Getting loss")
                         loss = loss_fn(output, features)
-                        # compute loss gradient
-                        # print("getting grad")
                         loss.backward()
-                        # print("stepping")
-                        # update weights
                         optimizer.step()
-                        # report loss
-                        # print("reporting")
                         tot_epoch_train_loss += loss.item()
                         if verbose:
                             running_loss = tot_epoch_train_loss / float(batch_i + 1)

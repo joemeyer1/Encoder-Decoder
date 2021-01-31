@@ -72,7 +72,7 @@ class RandomUpsample(nn.UpsamplingNearest2d):
 
 class scaled_tanh(nn.Tanh):
 	def __init__(self, scale_factor=1):
-		self.scale_factor = scale_factor / 2
+		self.scale_factor = scale_factor / 2  # to yield range [0, scale_factor]
 		super().__init__()
 
 	def forward(self, x):

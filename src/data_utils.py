@@ -2,17 +2,9 @@
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 
+import os
 from dataclasses import dataclass
 from typing import Tuple, Optional
-
-# data [(tensor(image/non-image), tensor(P(image)), ... ]
-import torch
-from numpy.random import shuffle
-from PIL import Image
-import os
-import sys
-import random
-sys.path.append('/Users/joe/img_gen/src')
 
 
 @dataclass
