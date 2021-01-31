@@ -76,7 +76,7 @@ class TestEncoderDecoder(unittest.TestCase):
         train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
 
-        # # get trained encoder-decoder's interpration of sum of 2 original image embeddings
+        # # get trained encoder-decoder's interpretation of sum of 2 original image embeddings
         # time.sleep(3)
         # show_images(image_data[:2])
         # embedding1 = c.net[:2](image_data[:1])
@@ -84,7 +84,7 @@ class TestEncoderDecoder(unittest.TestCase):
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
 
-        # get trained encoder-decoder's interpration of original image
+        # get trained encoder-decoder's interpretation of original image
         encoded_decoded_image_after_training = encoder_decoder.net.forward(image_data[:1])
         show_image(
             encoded_decoded_image_after_training[0],
@@ -92,7 +92,7 @@ class TestEncoderDecoder(unittest.TestCase):
             delete_after=delete_images,
             i=i,
         )
-        # get trained encoder-decoder's interpration of random image
+        # get trained encoder-decoder's interpretation of random image
         encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(encoded_decoded_image_after_training[:1].shape))*128)
         show_image(encoded_decoded_random_img[0], "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
         # see what random image interpretation looks like if run through encoder-decoder again
@@ -112,14 +112,14 @@ class TestEncoderDecoder(unittest.TestCase):
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 0  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=512)
+        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=128)
 
         encoder_decoder_spec = EncoderDecoderSpec(
-            cnn_shape=(5, 3, 3, 1),
+            cnn_shape=(3, 1),
             activation='tanh',
             compression_factor=2,
             res_weight=0,
-            embedding_size=32,
+            embedding_size=128,
             n_linear_embedding_layers=0,
             n_linear_final_layers=0,
         )
@@ -143,7 +143,14 @@ class TestEncoderDecoder(unittest.TestCase):
         training_spec.check_params(image_spec.n_images)
 
         # checks if image directories for storing generated images exist - if not, makes them
-        self.make_image_directories(('random_before', 'random_after', 'optimization-nets', 'losses-optimization'))
+        self.make_image_directories((
+            'before/random',
+            'before/original_images',
+            'after/random',
+            'after/reconstructed_images',
+            'optimization-nets',
+            'losses-optimization',
+        ))
 
         image_data = get_image_data(image_spec)
 
@@ -152,23 +159,32 @@ class TestEncoderDecoder(unittest.TestCase):
             img_dim=image_spec.img_dim,
         )
 
+        # get original image
+        before_img_name = show_image(image_data[0], "before/original_images/" + param_filename + ".jpg", delete_after=delete_data, i=i)
+
         # show untrained encoder-decoder's interpretation of random img
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
-        before_img_name = show_image(encoded_decoded_random_img_before_training[0], "random_before/"+param_filename+'.jpg', delete_after=delete_data, i=i)
+        before_rand_img_name = show_image(encoded_decoded_random_img_before_training[0], "before/random/"+param_filename+'.jpg', delete_after=delete_data, i=i)
 
         train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
         if not delete_data:
             save_net(encoder_decoder, f'optimization-nets/{param_filename}-net.pickle', i=i)
 
-        # get trained encoder-decoder's interpration of random image
+        # get trained encoder-decoder's interpretation of random image
         encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(1, 3, image_spec.img_dim, image_spec.img_dim))*128)
-        after_img_name = show_image(encoded_decoded_random_img[0], "random_after/"+param_filename+'.jpg', delete_after=delete_data, i=i)
+        after_rand_img_name = show_image(encoded_decoded_random_img[0], "after/random/"+param_filename+'.jpg', delete_after=delete_data, i=i)
+        
+        # get trained encoder-decoder's interpretation of original image
+        after_img_name = show_image(encoded_decoded_random_img[0], "after/reconstructed_images/" + param_filename + '.jpg', delete_after=delete_data, i=i)
 
         def ensure_img_filenames_match():
             img_name_len = len(param_filename)
-            before_img_name_i = before_img_name[len("random_before/")+img_name_len:]
-            after_img_name_i = after_img_name[len("random_after/")+img_name_len:]
-            assert before_img_name_i == after_img_name_i, "i does not match before / after"
+            before_rand_name_i = before_rand_img_name[len("before/random/")+img_name_len:]
+            after_rand_name_i = after_rand_img_name[len("after/random/")+img_name_len:]
+            assert before_rand_name_i == after_rand_name_i, "i does not match before / after"
+            before_img_name_i = before_img_name[len("before/original_images/")+img_name_len:]
+            after_img_name_i = after_img_name[len("after/reconstructed_images/")+img_name_len:]
+            assert before_img_name_i == after_img_name_i
         ensure_img_filenames_match()
         self.assertIsNotNone(encoded_decoded_random_img)
 
