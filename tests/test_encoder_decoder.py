@@ -124,6 +124,11 @@ class TestEncoderDecoder(unittest.TestCase):
             n_linear_final_layers=0,
         )
 
+        cnn_str = str(encoder_decoder_spec.cnn_shape).replace('(', '').replace(')', '').replace(', ', '_')
+        param_filename = f"{cnn_str}_cnn_shape-{encoder_decoder_spec.activation}_activation-" \
+                   f"{encoder_decoder_spec.res_weight}_res_weight-{encoder_decoder_spec.embedding_size}_embedding_size-" \
+                   f"{encoder_decoder_spec.n_linear_embedding_layers}_n_linear_embedding_layers"
+
         training_spec = TrainingSpec(
             epochs=8000,
             batch_size=8,
@@ -132,17 +137,13 @@ class TestEncoderDecoder(unittest.TestCase):
             save_best_net='min_test_loss',
             max_n_epochs_unimproved_loss=10,
             train_until_loss_margin_falls_to=.1,
-            save_loss_to_dir='losses-optimization',
+            save_loss_as=f'losses-optimization/{param_filename}',
             delete_data=delete_data,
         )
         training_spec.check_params(image_spec.n_images)
 
         # checks if image directories for storing generated images exist - if not, makes them
         self.make_image_directories(('random_before', 'random_after', 'optimization-nets', 'losses-optimization'))
-        cnn_str = str(encoder_decoder_spec.cnn_shape).replace('(', '').replace(')', '').replace(', ', '_')
-        param_filename = f"{cnn_str}_cnn_shape-{encoder_decoder_spec.activation}_activation-" \
-                   f"{encoder_decoder_spec.res_weight}_res_weight-{encoder_decoder_spec.embedding_size}_embedding_size-" \
-                   f"{encoder_decoder_spec.n_linear_embedding_layers}_n_linear_embedding_layers"
 
         image_data = get_image_data(image_spec)
 

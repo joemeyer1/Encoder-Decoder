@@ -134,7 +134,7 @@ def graph_loss(train_loss, test_loss, training_spec):
     plt.plot(train_loss, label="Train Loss")
     plt.plot(test_loss, label="Test Loss")
     plt.legend()
-    fig_name = finalize_filename(f'{training_spec.save_loss_to_dir}/loss.png')
+    fig_name = finalize_filename(f'{training_spec.save_loss_as}.png')
     plt.savefig(fig_name)
     import os
     os.system(f"open {fig_name}")

@@ -35,7 +35,7 @@ class TrainingSpec:
     save_best_net: str  # 'min_test_loss' or 'min_train_loss' or best net not saved
     max_n_epochs_unimproved_loss: Optional[int] = None
     train_until_loss_margin_falls_to: Optional[float] = None
-    save_loss_to_dir: str = 'losses'
+    save_loss_as: str = 'losses/loss'
     delete_data: bool = False
 
     def check_params(self, n_images: int):
