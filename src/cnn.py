@@ -22,7 +22,7 @@ from torch import nn
 
 
 class ConvBlock(nn.Module):
-	def __init__(self, kernel_size=3, stride=1, scale_factor=None, activation_fn=nn.ReLU):
+	def __init__(self, kernel_size=3, stride=1, scale_factor=None, activation_fn=nn.ReLU(), pool=True):
 		# make kernel odd
 		if kernel_size % 2 == 0:
 			kernel_size += 1
@@ -39,19 +39,23 @@ class ConvBlock(nn.Module):
 			padding=padding,
 		)
 
-		if scale_factor:
-			pool_layer = RandomUpsample(scale_factor=scale_factor, weight_rand=1)
+
+		if pool:
+			if scale_factor:
+				pool_layer = RandomUpsample(scale_factor=scale_factor, weight_rand=1)
+			else:
+				pool_layer = nn.MaxPool2d(
+					kernel_size=kernel_size,
+					stride=1,
+					padding=padding,
+				)
 		else:
-			pool_layer = nn.MaxPool2d(
-				kernel_size=kernel_size,
-				stride=1,
-				padding=padding,
-			)
+			pool_layer = nn.Identity()
 
 		self.block = nn.Sequential(
 			nn.Dropout(),
 			conv_layer,
-			activation_fn(),
+			activation_fn,
 			pool_layer,
 		)
 

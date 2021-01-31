@@ -34,8 +34,9 @@ class EncoderDecoder(nn.Module):
         self.build_encoder(encoder_decoder_spec.cnn_shape)
         self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_embedding_layers, linear_block_type='embedding')
         self.build_decoder()
-        self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_final_layers, linear_block_type='final')
-        self.net.add_module("final_activation", scaled_tanh(scale_factor=255))
+        if encoder_decoder_spec.n_linear_final_layers > 0:
+            self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_final_layers, linear_block_type='final')
+            self.net.add_module("final_activation", scaled_tanh(scale_factor=255))
         print(self.net)
 
     def forward(self, x: Tensor):
@@ -64,9 +65,9 @@ class EncoderDecoder(nn.Module):
             kernel_size = cnn_shape[i] if i < len(cnn_shape) else max(cnn_shape[-1], stride)
             self.encoder_shape.append((kernel_size, stride))
             if i + 1 < encoder_length:
-                conv_activation = self.conv_activation_fn
+                conv_activation = self.conv_activation_fn()
             else:
-                conv_activation = nn.Identity
+                conv_activation = nn.Identity()
             conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=conv_activation)
             # linear_layer = nn.Linear(self.current_output_size, self.current_output_size // self.compression_factor)
             encoder.add_module(f'conv_block{i}', conv_block)
@@ -86,10 +87,12 @@ class EncoderDecoder(nn.Module):
         for i in range(len(self.decoder_shape)):
             kernel_size, stride = self.decoder_shape[i]
             if i + 1 < len(self.decoder_shape):
-                conv_activation = self.conv_activation_fn
+                conv_activation = self.conv_activation_fn()
+                pool = True
             else:
-                conv_activation = nn.Identity
-            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=conv_activation)
+                conv_activation = scaled_tanh(scale_factor=255)
+                pool = False
+            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=conv_activation, pool=pool)
             # linear_layer = nn.Linear(self.current_output_size, self.current_output_size // self.compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
             self.current_output_size *= stride

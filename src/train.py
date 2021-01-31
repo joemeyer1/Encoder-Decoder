@@ -119,7 +119,7 @@ def graph_loss(train_loss, test_loss, training_spec):
     os.system(f"open {fig_name}")
     if training_spec.delete_data:
         import time
-        time.sleep(.5)
+        time.sleep(1)
         os.system(f"rm {fig_name}")
 
 def save_net(net, net_name, i=None):
