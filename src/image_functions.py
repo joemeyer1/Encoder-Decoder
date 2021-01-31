@@ -6,6 +6,8 @@ import torch
 import os
 import time
 
+from src.data_utils import finalize_filename
+
 import random
 
 
@@ -44,15 +46,6 @@ def show_image(img_vec, img_filename, delete_after=True, i=0):
 def save_img(img_vec, img_filename):
     im = get_image(img_vec)
     im.save(img_filename)
-
-
-def finalize_filename(filename, i=0):
-    name, ext = filename.split('.')
-    filename = name + str(i) + '.' + ext
-    while os.path.exists(filename):
-        i += 1
-        filename = name + str(i) + '.' + ext
-    return filename
 
 def get_image(img_vec):
     img_size = img_vec.shape[-2:]

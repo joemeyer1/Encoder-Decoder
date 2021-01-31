@@ -36,6 +36,7 @@ class TrainingSpec:
     max_n_epochs_unimproved_loss: Optional[int] = None
     train_until_loss_margin_falls_to: Optional[float] = None
     save_loss_to_dir: str = 'losses'
+    delete_data: bool = False
 
     def check_params(self, n_images: int):
         for param in (self.epochs, self.batch_size, self.learning_rate):
@@ -65,3 +66,11 @@ def batch(data, batch_size):
     batched_shape = [n_batches, batch_size] + list(data.shape[1:])
     batched_data = data[:n_batches*batch_size].reshape(batched_shape)
     return batched_data
+
+def finalize_filename(filename, i=0):
+    name, ext = filename.split('.')
+    filename = name + str(i) + '.' + ext
+    while os.path.exists(filename):
+        i += 1
+        filename = name + str(i) + '.' + ext
+    return filename

@@ -108,7 +108,7 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets_for_optimization(self):
 
-        delete_images: bool = False  # indicates to delete generated images
+        delete_data: bool = True  # indicates to delete generated images
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 0  # i indicates minimum number ID to use for file naming
 
@@ -133,6 +133,7 @@ class TestEncoderDecoder(unittest.TestCase):
             max_n_epochs_unimproved_loss=10,
             train_until_loss_margin_falls_to=.1,
             save_loss_to_dir='losses-optimization',
+            delete_data=delete_data,
         )
         training_spec.check_params(image_spec.n_images)
 
@@ -152,14 +153,15 @@ class TestEncoderDecoder(unittest.TestCase):
 
         # show untrained encoder-decoder's interpretation of random img
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
-        before_img_name = show_image(encoded_decoded_random_img_before_training[0], "random_before/"+param_filename+'.jpg', delete_after=delete_images, i=i)
+        before_img_name = show_image(encoded_decoded_random_img_before_training[0], "random_before/"+param_filename+'.jpg', delete_after=delete_data, i=i)
 
         train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
-        save_net(encoder_decoder, f'optimization-nets/{param_filename}-net.pickle', i=i)
+        if not delete_data:
+            save_net(encoder_decoder, f'optimization-nets/{param_filename}-net.pickle', i=i)
 
         # get trained encoder-decoder's interpration of random image
         encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(1, 3, image_spec.img_dim, image_spec.img_dim))*128)
-        after_img_name = show_image(encoded_decoded_random_img[0], "random_after/"+param_filename+'.jpg', delete_after=delete_images, i=i)
+        after_img_name = show_image(encoded_decoded_random_img[0], "random_after/"+param_filename+'.jpg', delete_after=delete_data, i=i)
 
         def ensure_img_filenames_match():
             img_name_len = len(param_filename)
