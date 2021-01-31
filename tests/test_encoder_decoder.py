@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
+import os
 
 import time
 
@@ -21,7 +22,7 @@ from src.image_functions import show_image, show_images, get_image_data
 
 class TestEncoderDecoder(unittest.TestCase):
 
-    # @unittest.skip
+    @unittest.skip
     def test_train_encoder_decoder_sunsets(self):
 
         delete_images: bool = False  # indicates to delete generated images
@@ -103,6 +104,70 @@ class TestEncoderDecoder(unittest.TestCase):
         # assert that encoder-decoder reconstruction from original image is closer to original image than
         #   encoder-decoder reconstruction from random image
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
+
+    # @unittest.skip
+    def test_train_encoder_decoder_sunsets_for_optimization(self):
+
+        delete_images: bool = False  # indicates to delete generated images
+        net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
+        i: int = 0  # i indicates minimum number ID to use for file naming
+
+        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=512)
+
+        encoder_decoder_spec = EncoderDecoderSpec(
+            cnn_shape=(5, 3, 3, 1),
+            activation='tanh',
+            compression_factor=2,
+            res_weight=0,
+            embedding_size=32,
+            n_linear_embedding_layers=0,
+            n_linear_final_layers=0,
+        )
+
+        training_spec = TrainingSpec(
+            epochs=8000,
+            batch_size=8,
+            learning_rate=1e-3,
+            test_proportion=.125,
+            save_best_net='min_test_loss',
+            max_n_epochs_unimproved_loss=10,
+            train_until_loss_margin_falls_to=.1,
+            save_loss_to_dir='losses-optimization',
+        )
+        training_spec.check_params(image_spec.n_images)
+
+        # checks if image directories for storing generated images exist - if not, makes them
+        self.make_image_directories(('random_before', 'random_after', 'optimization-nets', 'losses-optimization'))
+        cnn_str = str(encoder_decoder_spec.cnn_shape).replace('(', '').replace(')', '').replace(', ', '_')
+        param_filename = f"{cnn_str}_cnn_shape-{encoder_decoder_spec.activation}_activation-" \
+                   f"{encoder_decoder_spec.res_weight}_res_weight-{encoder_decoder_spec.embedding_size}_embedding_size-" \
+                   f"{encoder_decoder_spec.n_linear_embedding_layers}_n_linear_embedding_layers"
+
+        image_data = get_image_data(image_spec)
+
+        encoder_decoder = load_net(net_to_load) if net_to_load else EncoderDecoder(
+            encoder_decoder_spec=encoder_decoder_spec,
+            img_dim=image_spec.img_dim,
+        )
+
+        # show untrained encoder-decoder's interpretation of random img
+        encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
+        before_img_name = show_image(encoded_decoded_random_img_before_training[0], "random_before/"+param_filename+'.jpg', delete_after=delete_images, i=i)
+
+        train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
+        save_net(encoder_decoder, f'optimization-nets/{param_filename}-net.pickle', i=i)
+
+        # get trained encoder-decoder's interpration of random image
+        encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(1, 3, image_spec.img_dim, image_spec.img_dim))*128)
+        after_img_name = show_image(encoded_decoded_random_img[0], "random_after/"+param_filename+'.jpg', delete_after=delete_images, i=i)
+
+        def ensure_img_filenames_match():
+            img_name_len = len(param_filename)
+            before_img_name_i = before_img_name[len("random_before/")+img_name_len:]
+            after_img_name_i = after_img_name[len("random_after/")+img_name_len:]
+            assert before_img_name_i == after_img_name_i, "i does not match before / after"
+        ensure_img_filenames_match()
+        self.assertIsNotNone(encoded_decoded_random_img)
 
     @unittest.skip
     def test_train_encoder_decoder_sunset(self):
@@ -295,9 +360,7 @@ class TestEncoderDecoder(unittest.TestCase):
     def testPass(self):
         self.assertTrue(True)
 
-    def make_image_directories(self):
-        import os
-        image_directories = [
+    def make_image_directories(self, image_directories=(
             'original_images',
             'encoded_decoded_images_before_training',
             'encoded_decoded_random_imgs_before_training',
@@ -305,7 +368,8 @@ class TestEncoderDecoder(unittest.TestCase):
             'encoded_decoded_random_imgs_after_training',
             'double_encoded_decoded_random_imgs_after_training',
             'losses',
-        ]
+    )):
+
         for dir_name in image_directories:
             if not os.path.isdir(dir_name):
                 # makedirs allows for more complex paths to be created, versus mkdir

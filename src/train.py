@@ -102,20 +102,20 @@ def train_net(
                     # return best net if training's finished
                     if n_epochs_unimproved_loss > training_spec.max_n_epochs_unimproved_loss:
                         if verbose:
-                            graph_loss(train_loss=train_losses, test_loss=test_losses)
+                            graph_loss(train_loss=train_losses, test_loss=test_losses, loss_dir=training_spec.save_loss_to_dir)
                         return best_net
                 # epoch_counter.desc = "Total Loss: " + str(tot_loss)
         except:
             print("Interrupted.")
             if verbose:
-                graph_loss(train_loss=train_losses, test_loss=test_losses)
+                graph_loss(train_loss=train_losses, test_loss=test_losses, loss_dir=training_spec.save_loss_to_dir)
             if save_best_net:
                 return best_net
             else:
                 return net
     print('\n')
     if verbose:
-        graph_loss(train_loss=train_losses, test_loss=test_losses)
+        graph_loss(train_loss=train_losses, test_loss=test_losses, loss_dir=training_spec.save_loss_to_dir)
     if save_best_net:
         return best_net
     else:
@@ -129,12 +129,12 @@ def update_best_net(net, epoch_test_loss, min_loss, n_epochs_unimproved_loss):
         n_epochs_unimproved_loss += 1
     return {'best_net': net, 'n_epochs_unimproved_loss': n_epochs_unimproved_loss, 'min_loss': min_loss}
 
-def graph_loss(train_loss, test_loss):
+def graph_loss(train_loss, test_loss, loss_dir):
     from matplotlib import pyplot as plt
     plt.plot(train_loss, label="Train Loss")
     plt.plot(test_loss, label="Test Loss")
     plt.legend()
-    fig_name = finalize_filename('losses/loss.png')
+    fig_name = finalize_filename(f'{loss_dir}/loss.png')
     plt.savefig(fig_name)
     import os
     os.system(f"open {fig_name}")
