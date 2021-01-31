@@ -83,9 +83,8 @@ def get_image_vec(fname, size=None):
     def get_tensor(r, g, b, size):
         w, h = size
         def convert_to_tensor(rgb):
-            r, g, b = (torch.tensor(band, dtype=torch.float) for band in rgb)
-            # return torch.stack((r, g, b)
-            return torch.cat((r, g, b)).reshape(3, w, h)
+            # return torch.stack(tuple((torch.tensor(band, dtype=torch.float) for band in rgb)))
+            return torch.cat(tuple((torch.tensor(band, dtype=torch.float) for band in rgb))).reshape(3, w, h)
         r, g, b = convert_to_tensor((r, g, b))
         rgb = torch.cat((r, g, b)).reshape(3, w, h)
         return rgb
