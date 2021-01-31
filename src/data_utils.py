@@ -40,6 +40,10 @@ class TrainingSpec:
         for param in (self.test_proportion, self.max_n_epochs_rising_loss):
             assert param >= 0, f"param {param} must be >= 0"
         assert self.batch_size <= n_images, "batch can't be larger than dataset"
+        if self.save_best_net not in ("min_test_loss", "min_train_loss"):
+            print("Not saving best net - "
+                  "to save best net pass 'save_best_net' equal to 'min_test_loss' or 'min_train_loss',"
+                  f" not '{self.save_best_net}'")
 
 @dataclass
 class ImageSpec:
