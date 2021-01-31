@@ -6,11 +6,13 @@ import torch
 import os
 import time
 
+import random
+
 
 def get_image_data(image_spec):
-    dir_name = image_spec.get("dir_name")
-    n_images = image_spec.get("n_images")
-    img_dim = image_spec.get("img_dim")
+    dir_name = image_spec.dir_name
+    n_images = image_spec.n_images
+    img_dim = image_spec.img_dim
     img_size = (img_dim, img_dim)
 
     fnames = os.listdir(dir_name)
@@ -28,6 +30,7 @@ def get_image_data(image_spec):
             # image file invalid
             pass
     return torch.stack(img_vecs)
+
 
 def show_image(img_vec, img_filename, delete_after=True, i=0):
     img_filename = finalize_filename(img_filename, i)
@@ -56,6 +59,10 @@ def get_image(img_vec):
     im = Image.new('RGB', img_size)
     im.putdata(img_vec)
     return im
+
+def show_images(img_vecs):
+    for img_vec in img_vecs:
+        show_image(img_vec, 'tmp')
 
 
 # helpers for get_image_data

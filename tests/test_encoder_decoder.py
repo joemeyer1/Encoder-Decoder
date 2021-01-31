@@ -14,8 +14,7 @@ from typing import Tuple
 from src.encoder_decoder import EncoderDecoder
 from src.train import train_net, save_net, load_net
 
-from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec, \
-    get_image_data
+from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec
 
 from src.image_functions import show_image, show_images, get_image_data
 
@@ -27,9 +26,9 @@ class TestEncoderDecoder(unittest.TestCase):
 
         delete_images: bool = False  # indicates to delete generated images
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
-        i: Optional[int] = None  # i indicates minimum number ID to use for file naming
+        i: int = 183  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=512, img_dim=512)
+        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=512)
 
         encoder_decoder_spec = EncoderDecoderSpec(
             cnn_shape=(3, 1),
@@ -45,16 +44,21 @@ class TestEncoderDecoder(unittest.TestCase):
             epochs=8000,
             batch_size=8,
             learning_rate=1e-2,
+            test_proportion=.125,
             max_n_epochs_rising_loss=10,
             save_best_net='min_test_loss'
         )
+        training_spec.check_params(image_spec.n_images)
 
         # checks if image directories for storing generated images exist - if not, makes them
         self.make_image_directories()
 
         image_data = get_image_data(image_spec)
 
-        encoder_decoder = load_net(net_to_load) if net_to_load else EncoderDecoder(encoder_decoder_spec)
+        encoder_decoder = load_net(net_to_load) if net_to_load else EncoderDecoder(
+            encoder_decoder_spec=encoder_decoder_spec,
+            img_dim=image_spec.img_dim,
+        )
 
         # show original image
         show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
@@ -67,7 +71,7 @@ class TestEncoderDecoder(unittest.TestCase):
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
-        train_net(training_spec)
+        train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
 
 

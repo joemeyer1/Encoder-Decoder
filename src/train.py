@@ -20,17 +20,13 @@ from src.image_functions import finalize_filename
 def train_net(
         net,
         data,
-        epochs=1000,
-        batch_size=100,
-        test_proportion=.125,
-        verbose=True,
-        lr=.001,
-        save_best_net='min_test_loss',
-        max_n_epochs_rising_loss=10,
+        training_spec
 ):
+    verbose = True
+    save_best_net = training_spec.save_best_net
 
     assert len(data) > 0
-    assert test_proportion < 1
+    assert training_spec.test_proportion < 1
 
     # train net
     import torch
@@ -39,12 +35,12 @@ def train_net(
     from src.data_utils import batch
 
     loss_fn = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(net.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(net.parameters(), lr=training_spec.learning_rate)
     best_net, min_loss = None, float('inf')
-    with tqdm(range(epochs)) as epoch_counter:
+    with tqdm(range(training_spec.epochs)) as epoch_counter:
         try:
             n_epochs_rising_loss = 0
-            n_test_data = int(len(data) * test_proportion)
+            n_test_data = int(len(data) * training_spec.test_proportion)
             n_train_data = len(data) - n_test_data
             train_data = data[:n_train_data]
             test_data = data[n_train_data:]
@@ -52,7 +48,7 @@ def train_net(
             test_losses = []
             for epoch in epoch_counter:
                 tot_epoch_train_loss = 0
-                batches = batch(train_data, batch_size)
+                batches = batch(train_data, training_spec.batch_size)
                 with tqdm(range(len(batches)), leave=False) as batch_counter:
                     for batch_i in batch_counter:
                         features = batches[batch_i]
@@ -102,7 +98,7 @@ def train_net(
                         else:
                             n_epochs_rising_loss += 1
                     epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
-                if save_best_net and n_epochs_rising_loss > max_n_epochs_rising_loss:
+                if save_best_net and n_epochs_rising_loss > training_spec.max_n_epochs_rising_loss:
                     if verbose:
                         graph_loss(train_loss=train_losses, test_loss=test_losses)
                     return best_net

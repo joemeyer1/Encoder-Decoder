@@ -14,36 +14,27 @@ from src.cnn import ConvBlock, scaled_tanh  # CNN, ConvBlock
 
 
 class EncoderDecoder(nn.Module):
-    def __init__(self, encoder_decoder_spec):
-            self,
-            embedding_size=4,
-            cnn_shape=None,
-            compression_factor=2,
-            n_linear_embedding_layers=1,
-            res_weight=0,
-            activation='relu',
-            n_linear_final_layers=1,
-    ):
+    def __init__(self, encoder_decoder_spec, img_dim):
 
 
         super(EncoderDecoder, self).__init__()
 
-        self.
+        self.img_dim = img_dim
 
-        self.embedding_size = embedding_size
-        self.compression_factor = compression_factor
-        print(f"image size: {self.img_size}")
+        self.embedding_size = encoder_decoder_spec.embedding_size
+        self.compression_factor = encoder_decoder_spec.compression_factor
+        print(f"image dim: {self.img_dim}")
         print(f"embedding size: {self.embedding_size}")
         print(f"compression factor: {self.compression_factor}")
 
-        self.res_weight = res_weight
-        self.build_activation_fn(activation)
+        self.res_weight = encoder_decoder_spec.res_weight
+        self.build_activation_fn(encoder_decoder_spec.activation)
 
         self.net = nn.Sequential()
-        self.build_encoder(cnn_shape)
-        self.build_linear_block(n_layers=n_linear_embedding_layers, linear_block_type='embedding')
+        self.build_encoder(encoder_decoder_spec.cnn_shape)
+        self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_embedding_layers, linear_block_type='embedding')
         self.build_decoder()
-        self.build_linear_block(n_layers=n_linear_final_layers, linear_block_type='final')
+        self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_final_layers, linear_block_type='final')
         print(self.net)
 
     def forward(self, x: Tensor):
@@ -63,7 +54,7 @@ class EncoderDecoder(nn.Module):
     
     def build_encoder(self, cnn_shape):
         self.encoder_shape = []
-        self.current_output_size = self.img_size[-1]
+        self.current_output_size = self.img_dim
         # encoder compresses image down to embedding size, adding additional layers after if specified by cnn shape
         encoder_length = max(len(cnn_shape), int(log(self.current_output_size / self.embedding_size, self.compression_factor)))
         encoder = nn.Sequential()
@@ -120,7 +111,7 @@ class EncoderDecoder(nn.Module):
     # def get_net_shape(self, net_type: str) -> Tuple:
     #
     #     net_shape = []
-    #     next_layer_size = self.img_size[-1]
+    #     next_layer_size = self.img_dim
     #     assert next_layer_size >= self.embedding_size
     #     while next_layer_size >= self.embedding_size:
     #         net_shape.append(next_layer_size)
