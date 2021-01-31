@@ -36,7 +36,7 @@ def train_net(
 
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=training_spec.learning_rate)
-    best_net, min_loss = None, float('inf')
+    best_net, min_loss = net, float('inf')
     with tqdm(range(training_spec.epochs)) as epoch_counter:
         try:
             n_epochs_unimproved_loss = 0
