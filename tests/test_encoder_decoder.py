@@ -2,12 +2,22 @@
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 
+import time
+
 import unittest
 
 import torch
 
+from dataclasses import dataclass
+from typing import Tuple
+
 from src.encoder_decoder import EncoderDecoder
 from src.train import train_net, save_net, load_net
+
+from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec, \
+    get_image_data
+
+from src.image_functions import show_image, show_images
 
 
 class TestEncoderDecoder(unittest.TestCase):
@@ -15,45 +25,40 @@ class TestEncoderDecoder(unittest.TestCase):
     # @unittest.skip
     def test_train_encoder_decoder_sunsets(
             self,
-            learning_rate=1e-3,
-            n_images_train=512,
-            img_dim=512,
-            embedding_size=16,
-            compression_factor=2,
-            cnn_shape=(3,1),
-            res_weight=.05,
-            activation='tanh',
-            n_linear_embedding_layers=1,
-            n_linear_final_layers=0,
             delete_images=False,
-            epochs=8000,
-            batch_size=8,
-            save_best_net='min_test_loss',
-            max_n_epochs_rising_loss=10,
-            net_to_load='',
+            net_to_load='nets/net180.pickle',
             i=167,
     ):
+
         from src.data_utils import get_image_data
         from src.image_functions import show_image, show_images
         import time
 
         self.make_image_directories()
 
+        image_spec = ImageSpec(dir_name='img_data', n_images=512, img_dim=512)
+
+        encoder_decoder_spec = EncoderDecoderSpec(
+            cnn_shape=(3, 1),
+            activation='tanh',
+            compression_factor=2,
+            res_weight=0.05,
+            embedding_size=16,
+            n_linear_embedding_layers=1,
+            n_linear_final_layers=0,
+        )
+
+        training_spec = TrainingSpec(
+            epochs=8000,
+            batch_size=8,
+            learning_rate=1e-2,
+            max_n_epochs_rising_loss=10,
+            save_best_net='min_test_loss'
+        )
+
         image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
         assert image_data.shape[-2] == img_dim
-        if not net_to_load:
-            encoder_decoder = EncoderDecoder(
-                img_dim=img_dim,
-                embedding_size=embedding_size,
-                cnn_shape=cnn_shape,
-                compression_factor=compression_factor,
-                res_weight=res_weight,
-                activation=activation,
-                n_linear_embedding_layers=n_linear_embedding_layers,
-                n_linear_final_layers=n_linear_final_layers,
-            )
-        else:
-            encoder_decoder = load_net(net_to_load)
+        encoder_decoder = load_net(net_to_load) if net_to_load else EncoderDecoder(encoder_decoder_spec)
         show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
         time.sleep(3)
         encoded_decoded_image_before_training = encoder_decoder.net.forward(image_data[:1])
@@ -62,16 +67,7 @@ class TestEncoderDecoder(unittest.TestCase):
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
-        train_net(
-            net=encoder_decoder,
-            data=image_data,
-            epochs=epochs,
-            batch_size=batch_size,
-            verbose=True,
-            lr=learning_rate,
-            save_best_net=save_best_net,
-            max_n_epochs_rising_loss=max_n_epochs_rising_loss,
-        )
+        train_net(training_spec)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
         encoded_decoded_image_after_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_after_training[0], "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg", delete_after=delete_images, i=i)

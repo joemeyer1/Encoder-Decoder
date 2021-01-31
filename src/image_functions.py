@@ -88,8 +88,8 @@ def get_image_vecs(n=float('inf'), dir_name='recent'):
 
 # convert img from network format to Image format
 def format_img(img, img_size):
-    r, g, b=(ch.int().flatten().tolist() for ch in img)
-    return [(r[i], g[i], b[i]) for i in range(img_size[0]*img_size[1])]
+    r, g, b = (ch.int().flatten().tolist() for ch in img)
+    return [(r[i], g[i], b[i]) for i in range(img_size[0] * img_size[1])]
 
 
 

@@ -14,9 +14,8 @@ from src.cnn import ConvBlock, scaled_tanh  # CNN, ConvBlock
 
 
 class EncoderDecoder(nn.Module):
-    def __init__(
+    def __init__(self, encoder_decoder_spec):
             self,
-            img_dim=256,
             embedding_size=4,
             cnn_shape=None,
             compression_factor=2,
@@ -25,14 +24,12 @@ class EncoderDecoder(nn.Module):
             activation='relu',
             n_linear_final_layers=1,
     ):
+
+
         super(EncoderDecoder, self).__init__()
 
+        self.
 
-        # make sure embedding size recursively divides img size by compression factor
-        assert log(img_dim / embedding_size, compression_factor) % 1 == 0, \
-            f"Embedding size {embedding_size} must recursively divide img size {img_dim} by compression factor {compression_factor}"
-
-        self.img_size = (img_dim, img_dim)
         self.embedding_size = embedding_size
         self.compression_factor = compression_factor
         print(f"image size: {self.img_size}")
