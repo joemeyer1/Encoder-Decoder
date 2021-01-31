@@ -37,6 +37,11 @@ def train_net(
             test_data = data[n_train_data:]
             train_losses = []
             test_losses = []
+
+            test_output = net(test_data)
+            pretraining_test_loss = loss_fn(test_output, test_data).item()
+            epoch_counter.write(f" Pre-Training Avg Test Loss: {pretraining_test_loss}\n")
+
             for epoch in epoch_counter:
                 tot_epoch_train_loss = 0
                 batches = batch(train_data, training_spec.batch_size)
