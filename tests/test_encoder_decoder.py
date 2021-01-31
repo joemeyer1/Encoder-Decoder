@@ -28,15 +28,15 @@ class TestEncoderDecoder(unittest.TestCase):
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 183  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=512)
+        image_spec = ImageSpec(dir_name='img_data', n_images=512, img_dim=256)
 
         encoder_decoder_spec = EncoderDecoderSpec(
             cnn_shape=(3, 1),
             activation='tanh',
             compression_factor=2,
-            res_weight=0.05,
+            res_weight=0,
             embedding_size=16,
-            n_linear_embedding_layers=1,
+            n_linear_embedding_layers=0,
             n_linear_final_layers=0,
         )
 
