@@ -25,6 +25,7 @@ class EncoderDecoderSpec:
     n_linear_embedding_layers: int
     n_linear_final_layers: int
 
+
 @dataclass
 class TrainingSpec:
     epochs: int
@@ -49,6 +50,7 @@ class TrainingSpec:
             print("Not saving best net - "
                   "to save best net pass 'save_best_net' equal to 'min_test_loss' or 'min_train_loss',"
                   f" not '{self.save_best_net}'")
+
 
 @dataclass
 class ImageSpec:

@@ -28,14 +28,14 @@ class TestEncoderDecoder(unittest.TestCase):
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 183  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=256)
+        image_spec = ImageSpec(dir_name='img_data', n_images=1024, img_dim=512)
 
         encoder_decoder_spec = EncoderDecoderSpec(
-            cnn_shape=(3, 1),
+            cnn_shape=(5, 3, 3, 1),
             activation='tanh',
             compression_factor=2,
             res_weight=0,
-            embedding_size=16,
+            embedding_size=32,
             n_linear_embedding_layers=0,
             n_linear_final_layers=0,
         )
@@ -43,11 +43,11 @@ class TestEncoderDecoder(unittest.TestCase):
         training_spec = TrainingSpec(
             epochs=8000,
             batch_size=8,
-            learning_rate=1e-2,
+            learning_rate=1e-3,
             test_proportion=.125,
             save_best_net='min_test_loss',
             max_n_epochs_unimproved_loss=10,
-            train_until_loss_margin_falls_to=1000,
+            train_until_loss_margin_falls_to=.1,
         )
         training_spec.check_params(image_spec.n_images)
 
@@ -75,7 +75,6 @@ class TestEncoderDecoder(unittest.TestCase):
         train_net(net=encoder_decoder, data=image_data, training_spec=training_spec)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
 
-
         # # get trained encoder-decoder's interpration of sum of 2 original image embeddings
         # time.sleep(3)
         # show_images(image_data[:2])
@@ -101,7 +100,8 @@ class TestEncoderDecoder(unittest.TestCase):
             deep_encoded_decoded_random_img = encoder_decoder.net.forward(deep_encoded_decoded_random_img[:1])
         show_image(deep_encoded_decoded_random_img[0], "double_encoded_decoded_random_imgs_after_training/double_encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
 
-        # assert that encoder-decoder interprets original image more faithfully after training than before
+        # assert that encoder-decoder reconstruction from original image is closer to original image than
+        #   encoder-decoder reconstruction from random image
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
 
     @unittest.skip

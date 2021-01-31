@@ -35,6 +35,7 @@ class EncoderDecoder(nn.Module):
         self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_embedding_layers, linear_block_type='embedding')
         self.build_decoder()
         self.build_linear_block(n_layers=encoder_decoder_spec.n_linear_final_layers, linear_block_type='final')
+        self.net.add_module("final_activation", scaled_tanh(scale_factor=255))
         print(self.net)
 
     def forward(self, x: Tensor):

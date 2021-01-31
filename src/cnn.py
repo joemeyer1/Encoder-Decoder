@@ -71,5 +71,9 @@ class RandomUpsample(nn.UpsamplingNearest2d):
 # UPSAMPLE: add a sample from normal distribution to upsample to avoid uniformity
 
 class scaled_tanh(nn.Tanh):
+	def __init__(self, scale_factor=1):
+		self.scale_factor = scale_factor / 2
+		super().__init__()
+
 	def forward(self, x):
-		return (.5 * super().forward(x)) + .5
+		return (self.scale_factor * super().forward(x)) + self.scale_factor
