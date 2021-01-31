@@ -175,7 +175,8 @@ class TestEncoderDecoder(unittest.TestCase):
         after_rand_img_name = show_image(encoded_decoded_random_img[0], "after/random/"+param_filename+'.jpg', delete_after=delete_data, i=i)
         
         # get trained encoder-decoder's interpretation of original image
-        after_img_name = show_image(encoded_decoded_random_img[0], "after/reconstructed_images/" + param_filename + '.jpg', delete_after=delete_data, i=i)
+        encoded_decoded_img = encoder_decoder.forward(image_data[:1])
+        after_img_name = show_image(encoded_decoded_img[0], "after/reconstructed_images/" + param_filename + '.jpg', delete_after=delete_data, i=i)
 
         def ensure_img_filenames_match():
             img_name_len = len(param_filename)
