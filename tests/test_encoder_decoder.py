@@ -17,7 +17,7 @@ from src.train import train_net, save_net, load_net
 from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec, \
     get_image_data
 
-from src.image_functions import show_image, show_images
+from src.image_functions import show_image, show_images, get_image_data
 
 
 class TestEncoderDecoder(unittest.TestCase):
@@ -29,10 +29,6 @@ class TestEncoderDecoder(unittest.TestCase):
             net_to_load='nets/net180.pickle',
             i=167,
     ):
-
-        from src.data_utils import get_image_data
-        from src.image_functions import show_image, show_images
-        import time
 
         self.make_image_directories()
 
@@ -56,21 +52,29 @@ class TestEncoderDecoder(unittest.TestCase):
             save_best_net='min_test_loss'
         )
 
-        image_data = get_image_data(n=n_images_train, img_size=(img_dim, img_dim))
+        image_data = get_image_data(image_spec)
         assert image_data.shape[-2] == img_dim
         encoder_decoder = load_net(net_to_load) if net_to_load else EncoderDecoder(encoder_decoder_spec)
+
+        # show original image
         show_image(image_data[0], "original_images/image.jpg", delete_after=delete_images, i=i)
         time.sleep(3)
+
+        # show untrained encoder-decoder's interpretation of original image
         encoded_decoded_image_before_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_before_training[0], "encoded_decoded_images_before_training/encoded_decoded_image_before_training.jpg", delete_after=delete_images, i=i)
-
+        # show untarined encoder-decoder's interpretation of random img
         encoded_decoded_random_img_before_training = encoder_decoder.forward(abs(torch.randn(image_data[:1].shape)) * 128)
         show_image(encoded_decoded_random_img_before_training[0], "encoded_decoded_random_imgs_before_training/encoded_decoded_random_img_before_training.jpg", delete_after=delete_images, i=i)
 
         train_net(training_spec)
         save_net(encoder_decoder, 'nets/net.pickle', i=i)
+
+        # get trained encoder-decoder's interpration of original image
         encoded_decoded_image_after_training = encoder_decoder.net.forward(image_data[:1])
         show_image(encoded_decoded_image_after_training[0], "encoded_decoded_images_after_training/encoded_decoded_image_after_training.jpg", delete_after=delete_images, i=i)
+
+        # # get trained encoder-decoder's interpration of sum of 2 original image embeddings
         # time.sleep(3)
         # show_images(image_data[:2])
         # embedding1 = c.net[:2](image_data[:1])
@@ -78,14 +82,16 @@ class TestEncoderDecoder(unittest.TestCase):
         # decoded = c.net[2:](embedding1+embedding2)
         # show_image(decoded[0])
 
+        # get trained encoder-decoder's interpration of random image
         encoded_decoded_random_img = encoder_decoder.forward(abs(torch.randn(encoded_decoded_image_after_training[:1].shape))*128)
         show_image(encoded_decoded_random_img[0], "encoded_decoded_random_imgs_after_training/encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
-
+        # see what that interpretation looks like if run through encoder-decoder again
         deep_encoded_decoded_random_img = encoded_decoded_random_img
         for _ in range(1):
             deep_encoded_decoded_random_img = encoder_decoder.net.forward(deep_encoded_decoded_random_img[:1])
         show_image(deep_encoded_decoded_random_img[0], "double_encoded_decoded_random_imgs_after_training/double_encoded_decoded_random_img_after_training.jpg", delete_after=delete_images, i=i)
 
+        # assert that encoder-decoder interprets original image more faithfully after training than before
         self.assertTrue(torch.sum(abs(encoded_decoded_random_img[0] - image_data[0])) > torch.sum(abs(encoded_decoded_image_after_training[0] - image_data[0])))
 
     @unittest.skip

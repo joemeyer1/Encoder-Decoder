@@ -7,6 +7,31 @@ import os
 import time
 
 
+def get_image_data(image_spec):
+    dir_name = image_spec.get("dir_name")
+    n_images = image_spec.get("n_images")
+    img_dim = image_spec.get("img_dim")
+    img_size = (img_dim, img_dim)
+
+    fnames = os.listdir(dir_name)
+    img_vecs = []
+    while n_images and fnames:
+        i = random.randint(0, len(fnames)-1)
+        fname = fnames.pop(i)
+        fpath = os.path.join(dir_name, fname)
+        try:
+            img_vec = get_image_vec(fpath, img_size)
+            img_vecs.append(img_vec)
+            n_images -= 1
+        except:
+            print("{} invalid.".format(fpath))
+            # image file invalid
+            pass
+    # return data w pos labels
+    return torch.stack(img_vecs)
+    # return [(img_vec, torch.tensor([label], dtype=torch.float)) for img_vec in img_vecs]
+
+
 def show_images_from_dir(n=float('inf'), dir_name='recent'):
     img_vecs = get_image_vecs(n, dir_name)
     show_images(img_vecs)
