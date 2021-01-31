@@ -28,7 +28,7 @@ class TestEncoderDecoder(unittest.TestCase):
         net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 183  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=512, img_dim=256)
+        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=256)
 
         encoder_decoder_spec = EncoderDecoderSpec(
             cnn_shape=(3, 1),
@@ -45,8 +45,9 @@ class TestEncoderDecoder(unittest.TestCase):
             batch_size=8,
             learning_rate=1e-2,
             test_proportion=.125,
-            max_n_epochs_rising_loss=10,
-            save_best_net='min_test_loss'
+            save_best_net='min_test_loss',
+            max_n_epochs_unimproved_loss=10,
+            train_until_loss_margin_falls_to=1000,
         )
         training_spec.check_params(image_spec.n_images)
 

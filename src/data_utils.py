@@ -3,7 +3,7 @@
 
 
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 # data [(tensor(image/non-image), tensor(P(image)), ... ]
 import torch
@@ -31,14 +31,19 @@ class TrainingSpec:
     batch_size: int
     learning_rate: float
     test_proportion: float
-    max_n_epochs_rising_loss: int
-    save_best_net: str
+    save_best_net: str  # 'min_test_loss' or 'min_train_loss' or best net not saved
+    max_n_epochs_unimproved_loss: Optional[int] = None
+    train_until_loss_margin_falls_to: Optional[float] = None
 
     def check_params(self, n_images: int):
         for param in (self.epochs, self.batch_size, self.learning_rate):
             assert param > 0, f"param {param} must be > 0"
-        for param in (self.test_proportion, self.max_n_epochs_rising_loss):
+        for param in (self.test_proportion, self.max_n_epochs_unimproved_loss, self.train_until_loss_margin_falls_to):
             assert param >= 0, f"param {param} must be >= 0"
+        assert self.test_proportion >= 0, f"param {self.test_proportion} must be >= 0"
+        if self.save_best_net:
+            for param in (self.max_n_epochs_unimproved_loss, self.train_until_loss_margin_falls_to):
+                assert param >= 0, f"param {param} must be >= 0"
         assert self.batch_size <= n_images, "batch can't be larger than dataset"
         if self.save_best_net not in ("min_test_loss", "min_train_loss"):
             print("Not saving best net - "

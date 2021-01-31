@@ -39,7 +39,7 @@ def train_net(
     best_net, min_loss = None, float('inf')
     with tqdm(range(training_spec.epochs)) as epoch_counter:
         try:
-            n_epochs_rising_loss = 0
+            n_epochs_unimproved_loss = 0
             n_test_data = int(len(data) * training_spec.test_proportion)
             n_train_data = len(data) - n_test_data
             train_data = data[:n_train_data]
@@ -83,25 +83,27 @@ def train_net(
                 test_output = net(test_data)
                 epoch_test_loss = loss_fn(test_output, test_data).item()
                 test_losses.append(epoch_test_loss)
-                if save_best_net == 'min_test_loss':
-                    if epoch_test_loss < min_loss:
+
+                if save_best_net in ('min_test_loss', 'min_train_loss'):
+                    if save_best_net == 'min_test_loss':
+                        epoch_loss = epoch_test_loss
+                        loss_type = 'Test'
+                    else:  # save_best_net == 'min_train_loss':
+                        epoch_loss = epoch_train_loss
+                        loss_type = 'Train'
+                    # update best net, min_loss, n_epochs_unimproved_loss
+                    loss_improvement = min_loss - epoch_loss
+                    if loss_improvement > training_spec.train_until_loss_margin_falls_to:
                         best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
-                        n_epochs_rising_loss = 0
+                        n_epochs_unimproved_loss = 0
                     else:
-                        n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Test Loss: {}\n".format(epoch, epoch_test_loss))
-                else:
-                    if save_best_net == 'min_train_loss':
-                        if epoch_train_loss < min_loss:
-                            best_net, min_loss = deepcopy(net), deepcopy(epoch_train_loss)
-                            n_epochs_rising_loss = 0
-                        else:
-                            n_epochs_rising_loss += 1
-                    epoch_counter.write(" Epoch {} Avg Train Loss: {}\n".format(epoch, epoch_train_loss))
-                if save_best_net and n_epochs_rising_loss > training_spec.max_n_epochs_rising_loss:
-                    if verbose:
-                        graph_loss(train_loss=train_losses, test_loss=test_losses)
-                    return best_net
+                        n_epochs_unimproved_loss += 1
+                    epoch_counter.write(f" Epoch {epoch} Avg {loss_type} Loss: {epoch_loss}\n")
+                    # return best net if training's finished
+                    if n_epochs_unimproved_loss > training_spec.max_n_epochs_unimproved_loss:
+                        if verbose:
+                            graph_loss(train_loss=train_losses, test_loss=test_losses)
+                        return best_net
                 # epoch_counter.desc = "Total Loss: " + str(tot_loss)
         except:
             print("Interrupted.")
@@ -118,6 +120,14 @@ def train_net(
         return best_net
     else:
         return net
+
+def update_best_net(net, epoch_test_loss, min_loss, n_epochs_unimproved_loss):
+    if epoch_test_loss < min_loss:
+        net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
+        n_epochs_unimproved_loss = 0
+    else:
+        n_epochs_unimproved_loss += 1
+    return {'best_net': net, 'n_epochs_unimproved_loss': n_epochs_unimproved_loss, 'min_loss': min_loss}
 
 def graph_loss(train_loss, test_loss):
     from matplotlib import pyplot as plt
