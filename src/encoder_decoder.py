@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
-from copy import deepcopy
-
-from math import log2
-from typing import Tuple
 
 from math import log
 
-from torch import nn, Tensor
-
 from src.cnn import ConvBlock, scaled_tanh  # CNN, ConvBlock
+from torch import nn, Tensor
 
 
 class EncoderDecoder(nn.Module):

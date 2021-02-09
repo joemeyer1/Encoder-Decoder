@@ -3,15 +3,13 @@
 
 
 import os
-
 from math import floor, log
 
 from generate_img import generate_image
 from generate_trained_net import generate_trained_net
-
 from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec
-
 from src.image_functions import show_image
+
 
 def main(
     image_spec=ImageSpec(dir_name='img_data', n_images=64, img_dim=512),

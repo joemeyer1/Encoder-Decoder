@@ -2,22 +2,15 @@
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 import os
-# os.sys.path.append('/Users/joemeyer/Documents/Encoder-Decoder')
-
-from math import log, floor
-
-import torch
-
 from dataclasses import dataclass
+from math import log, floor
 from typing import Tuple, Optional
 
-# print(os.sys.path)
-from src.encoder_decoder import EncoderDecoder
-from src.train import train_net, save_net, load_net
-
+import torch
 from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec
-
+from src.encoder_decoder import EncoderDecoder
 from src.image_functions import show_image, show_images, get_image_data
+from src.train import train_net, save_net, load_net
 
 
 def generate_trained_net(

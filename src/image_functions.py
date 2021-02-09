@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
-from PIL import Image
-import torch
 import os
+import random
 import time
 
+import torch
+from PIL import Image
 from src.data_utils import finalize_filename
-
-import random
 
 
 def get_image_data(image_spec):
