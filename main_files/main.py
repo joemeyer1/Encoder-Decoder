@@ -3,10 +3,12 @@
 
 
 import os
+os.sys.path.append('/Users/joemeyer/Documents/Encoder-Decoder')
+
 from math import floor, log
 
-from generate_img import generate_image
-from generate_trained_net import generate_trained_net
+from main_files.generate_img import generate_image
+from main_files.generate_trained_net import generate_trained_net
 from src.data_utils import ImageSpec, EncoderDecoderSpec, TrainingSpec
 from src.image_functions import show_image
 

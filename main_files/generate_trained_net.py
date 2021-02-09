@@ -14,7 +14,7 @@ from src.train import train_net, save_net, load_net
 
 
 def generate_trained_net(
-    image_spec=ImageSpec(dir_name='img_data', n_images=64, img_dim=512),
+    image_spec=ImageSpec(dir_name='../img_data', n_images=64, img_dim=512),
 
     encoder_decoder_spec=EncoderDecoderSpec(
         cnn_shape=(5, 3, 3, 1),
