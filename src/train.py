@@ -127,11 +127,12 @@ def graph_loss(train_loss, test_loss, training_spec):
         time.sleep(1)
         os.system(f"rm {fig_name}")
 
-def save_net(net, net_name, i=None):
+def save_net(net, net_name, i=None) -> str:
     import pickle
     net_name = finalize_filename(net_name, i)
     with open(net_name, 'wb') as f:
         pickle.dump(net, f)
+    return net_name
 
 def load_net(net_name):
     import pickle
