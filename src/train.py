@@ -41,6 +41,7 @@ def train_net(
 
             test_output = net(test_data)
             pretraining_test_loss = loss_fn(test_output, test_data).item()
+            loss_last_img_write = pretraining_test_loss
             epoch_counter.write(f" Pre-Training Avg Test Loss: {pretraining_test_loss}\n")
 
             for epoch in epoch_counter:
@@ -69,7 +70,12 @@ def train_net(
                 epoch_test_loss = loss_fn(test_output, test_data).item()
                 test_losses.append(epoch_test_loss)
 
-                if training_spec.show_image_every_n_epochs and epoch % training_spec.show_image_every_n_epochs == 0:
+                nth_epoch_show_image: bool = training_spec.show_image_every_n_epochs and epoch % training_spec.show_image_every_n_epochs == 0
+                loss_improvement_since_last_img_write = loss_last_img_write - epoch_test_loss
+                n_loss_drop_show_image: bool = training_spec.show_image_every_n_loss_drop and loss_improvement_since_last_img_write > training_spec.show_image_every_n_loss_drop
+                if n_loss_drop_show_image:
+                    loss_last_img_write = deepcopy(epoch_test_loss)
+                if nth_epoch_show_image or n_loss_drop_show_image:
                     rand_img_embedding = get_rand_img_embedding(net.embedding_size)
                     generated_img = net.net[1:](rand_img_embedding)[0]
                     img_epoch_filename = f"net-training-epochs/{epoch}_epoch_net_training.jpg"
@@ -83,7 +89,7 @@ def train_net(
                         epoch_loss = epoch_train_loss
                         loss_type = 'Train'
                     # update best net, min_loss, n_epochs_unimproved_loss
-                    loss_improvement = min_loss - epoch_loss
+                    loss_improvement = min_loss - epoch_test_loss
                     if loss_improvement > training_spec.train_until_loss_margin_falls_to:
                         best_net, min_loss = deepcopy(net), deepcopy(epoch_test_loss)
                         n_epochs_unimproved_loss = 0

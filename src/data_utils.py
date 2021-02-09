@@ -29,6 +29,7 @@ class TrainingSpec:
     test_proportion: float
     save_best_net: str  # 'min_test_loss' or 'min_train_loss' or best net not saved
     show_image_every_n_epochs: Optional[int] = None
+    show_image_every_n_loss_drop: Optional[int] = None
     max_n_epochs_unimproved_loss: Optional[int] = None
     train_until_loss_margin_falls_to: Optional[float] = None
     save_loss_as: str = 'losses/loss'

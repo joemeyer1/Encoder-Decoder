@@ -14,10 +14,10 @@ from src.image_functions import show_image
 
 
 def main(
-    image_spec=ImageSpec(dir_name='img_data', n_images=16, img_dim=512),
+    image_spec=ImageSpec(dir_name='img_data', n_images=64, img_dim=512),
 
     encoder_decoder_spec=EncoderDecoderSpec(
-        cnn_shape=(5, 3, 3, 1),
+        cnn_shape=(5, 3, 3, 3, 1),
         activation='relu',
         compression_factor=2,
         res_weight=0,
@@ -30,18 +30,23 @@ def main(
     training_spec=TrainingSpec(
         epochs=8000,
         batch_size=8,
-        learning_rate=1e-3,
+        learning_rate=1e-4,
         test_proportion=.125,
         save_best_net='min_test_loss',
         show_image_every_n_epochs=None,
+        show_image_every_n_loss_drop=50,
         max_n_epochs_unimproved_loss=10,
-        train_until_loss_margin_falls_to=4,
+        train_until_loss_margin_falls_to=1,
         delete_data=False,
     ),
 
-    net_to_load=None,  # "trained-nets/5_3_3_1_cnn_shape--relu_activation--0_res_weight--5e-2_dropout--16_embedding_size--0_n_linear_embedding_layers--8_batch_size--1e-3_lr-net1021.pickle",  # e.g. "nets/net180.pickle"
+    net_to_load="trained-nets/5_3_3_1_cnn_shape--relu_activation--0_res_weight--5e-2_dropout--16_embedding_size--0_n_linear_embedding_layers--8_batch_size--1e-3_lr-net1035.pickle",  #"trained-nets/5_3_3_1_cnn_shape--relu_activation--0_res_weight--5e-2_dropout--16_embedding_size--0_n_linear_embedding_layers--8_batch_size--1e-3_lr-net1032.pickle",  # "trained-nets/5_3_3_1_cnn_shape--relu_activation--0_res_weight--5e-2_dropout--16_embedding_size--0_n_linear_embedding_layers--8_batch_size--1e-3_lr-net1021.pickle",  # e.g. "nets/net180.pickle"
     i=1000,  # i indicates minimum number ID to use for file naming
 ):
+
+    if type(training_spec.show_image_every_n_epochs) == str:
+        training_spec.show_image_every_n_epochs = int(eval(training_spec.show_image_every_n_epochs))
+        print(f"show image every {training_spec.show_image_every_n_epochs} epochs\n")
 
     # checks if image directories for storing generated images exist - if not, makes them
     make_directories((
