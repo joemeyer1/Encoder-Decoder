@@ -14,7 +14,7 @@ from src.image_functions import show_image
 
 
 def main(
-    image_spec=ImageSpec(dir_name='img_data', n_images=64, img_dim=512),
+    image_spec=ImageSpec(dir_name='img_data', n_images=16, img_dim=512),
 
     encoder_decoder_spec=EncoderDecoderSpec(
         cnn_shape=(5, 3, 3, 1),
@@ -33,12 +33,13 @@ def main(
         learning_rate=1e-3,
         test_proportion=.125,
         save_best_net='min_test_loss',
+        show_image_every_n_epochs=None,
         max_n_epochs_unimproved_loss=10,
-        train_until_loss_margin_falls_to=.1,
+        train_until_loss_margin_falls_to=4,
         delete_data=False,
     ),
 
-    net_to_load=None,  # e.g. "nets/net180.pickle"
+    net_to_load=None,  # "trained-nets/5_3_3_1_cnn_shape--relu_activation--0_res_weight--5e-2_dropout--16_embedding_size--0_n_linear_embedding_layers--8_batch_size--1e-3_lr-net1021.pickle",  # e.g. "nets/net180.pickle"
     i=1000,  # i indicates minimum number ID to use for file naming
 ):
 
@@ -47,10 +48,11 @@ def main(
         'trained-nets',
         'trained-net-losses',
         'main-images',
+        'net-training-epochs'
     ))
 
     if net_to_load:
-        net_filename = net_to_load
+        net_filename = net_to_load.split('/')[-1].split('.')[0].split('-net')[0]
     else:
 
         def get_net_filename() -> str:
@@ -85,6 +87,7 @@ def make_directories(image_directories=(
             'trained-nets',
             'trained-net-losses',
             'main-images',
+            'net-training-epochs',
 )):
     for dir_name in image_directories:
         if not os.path.isdir(dir_name):

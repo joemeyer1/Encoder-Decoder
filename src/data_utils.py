@@ -6,6 +6,8 @@ import os
 from dataclasses import dataclass
 from typing import Tuple, Optional
 
+import torch
+
 
 @dataclass
 class EncoderDecoderSpec:
@@ -26,6 +28,7 @@ class TrainingSpec:
     learning_rate: float
     test_proportion: float
     save_best_net: str  # 'min_test_loss' or 'min_train_loss' or best net not saved
+    show_image_every_n_epochs: Optional[int] = None
     max_n_epochs_unimproved_loss: Optional[int] = None
     train_until_loss_margin_falls_to: Optional[float] = None
     save_loss_as: str = 'losses/loss'
@@ -67,3 +70,16 @@ def finalize_filename(filename, i=0):
         i += 1
         filename = name + str(i) + '.' + ext
     return filename
+
+def get_rand_img_embedding(embedding_size, rand_embedding_type='both', brightness=200):
+    randn_input_embedding = lambda: abs(torch.randn(size=(1, 3, embedding_size, embedding_size))) * brightness
+    randu_input_embedding = lambda: torch.randint(low=-brightness, high=brightness, size=(1, 3, embedding_size, embedding_size), dtype=torch.float32)
+    if rand_embedding_type == "randn":
+        input_embedding = randn_input_embedding()
+    elif rand_embedding_type == 'randu':
+        input_embedding = randu_input_embedding()
+    elif rand_embedding_type == 'both':
+        input_embedding = randn_input_embedding() + randu_input_embedding()
+    else:
+        raise Exception("Must specify rand_embedding_type='randn' or 'randu' or 'both'")
+    return input_embedding

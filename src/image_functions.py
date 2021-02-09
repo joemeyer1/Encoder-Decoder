@@ -33,13 +33,17 @@ def get_image_data(image_spec):
     return torch.stack(img_vecs)
 
 
-def show_image(img_vec, img_filename, delete_after=True, i=0):
-    img_filename = finalize_filename(img_filename, i)
-    save_img(img_vec, img_filename)
+def show_image(img_vec, img_filename, delete_after=True, i=0) -> str:
+    img_filename = save_img_with_finalized_filename(img_vec, img_filename, i)
     os.system(f"open {img_filename}")
     if delete_after:
         time.sleep(-(-img_vec.shape[0]//256))
         os.system(f"rm {img_filename}")
+    return img_filename
+
+def save_img_with_finalized_filename(img_vec, img_filename, i=0) -> str:
+    img_filename = finalize_filename(img_filename, i)
+    save_img(img_vec, img_filename)
     return img_filename
 
 def save_img(img_vec, img_filename):

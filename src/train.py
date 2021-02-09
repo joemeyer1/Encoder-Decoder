@@ -5,7 +5,8 @@
 # from typing import Tuple
 # from src.encoder_decoder import EncoderDecoder
 # from src.data_utils import fetch_img_data
-from src.data_utils import finalize_filename
+from src.data_utils import finalize_filename, get_rand_img_embedding
+from src.image_functions import save_img_with_finalized_filename
 
 
 def train_net(
@@ -67,6 +68,12 @@ def train_net(
                 test_output = net(test_data)
                 epoch_test_loss = loss_fn(test_output, test_data).item()
                 test_losses.append(epoch_test_loss)
+
+                if training_spec.show_image_every_n_epochs and epoch % training_spec.show_image_every_n_epochs == 0:
+                    rand_img_embedding = get_rand_img_embedding(net.embedding_size)
+                    generated_img = net.net[1:](rand_img_embedding)[0]
+                    img_epoch_filename = f"net-training-epochs/{epoch}_epoch_net_training.jpg"
+                    save_img_with_finalized_filename(generated_img, img_epoch_filename)
 
                 if save_best_net in ('min_test_loss', 'min_train_loss'):
                     if save_best_net == 'min_test_loss':
