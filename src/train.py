@@ -29,6 +29,7 @@ def train_net(
     loss_fn = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=training_spec.learning_rate)
     best_net, min_loss = net, float('inf')
+    rand_img_embedding_constant = get_rand_img_embedding(net.embedding_size)
     with tqdm(range(training_spec.epochs)) as epoch_counter:
         try:
             n_epochs_unimproved_loss = 0
@@ -76,10 +77,15 @@ def train_net(
                 if n_loss_drop_show_image:
                     loss_last_img_write = deepcopy(epoch_test_loss)
                 if nth_epoch_show_image or n_loss_drop_show_image:
-                    rand_img_embedding = get_rand_img_embedding(net.embedding_size)
-                    generated_img = net.net[1:](rand_img_embedding)[0]
-                    img_epoch_filename = f"net-training-epochs/{epoch}_epoch_net_training.jpg"
-                    save_img_with_finalized_filename(generated_img, img_epoch_filename)
+                    # generate over time from 1 constant embedding
+                    img_epoch_filename_constant = f"net-training-epochs/net-training-epochs-constant/{epoch}_epoch_net_training.jpg"
+                    generated_img = net.net[1:](rand_img_embedding_constant)[0]
+                    save_img_with_finalized_filename(generated_img, img_epoch_filename_constant)
+                    # generate from random embedding
+                    img_epoch_filename_variable = f"net-training-epochs/net-training-epochs-variable/{epoch}_epoch_net_training.jpg"
+                    rand_img_embedding_variable = get_rand_img_embedding(net.embedding_size)
+                    generated_img = net.net[1:](rand_img_embedding_variable)[0]
+                    save_img_with_finalized_filename(generated_img, img_epoch_filename_variable)
 
                 if save_best_net in ('min_test_loss', 'min_train_loss'):
                     if save_best_net == 'min_test_loss':
