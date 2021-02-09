@@ -151,8 +151,10 @@ class TestEncoderDecoder(unittest.TestCase):
         cnn_str = str(encoder_decoder_spec.cnn_shape).replace('(', '').replace(')', '').replace(', ', '_')
         lr_first_digit = str(training_spec.learning_rate).replace('0', '').replace('.', '')[0]
         learning_rate_str = f"{lr_first_digit}e{round(log(training_spec.learning_rate, 10))}"
+        dropout_first_digit = str(encoder_decoder_spec.dropout).replace('0', '').replace('.', '')[0]
+        dropout_str = f"{dropout_first_digit}e{round(log(encoder_decoder_spec.dropout, 10))}"
         param_filename = f"{cnn_str}_cnn_shape--{encoder_decoder_spec.activation}_activation--" \
-            f"{encoder_decoder_spec.res_weight}_res_weight--{encoder_decoder_spec.embedding_size}_embedding_size--" \
+            f"{encoder_decoder_spec.res_weight}_res_weight--{dropout_str}_dropout--{encoder_decoder_spec.embedding_size}_embedding_size--" \
             f"{encoder_decoder_spec.n_linear_embedding_layers}_n_linear_embedding_layers--" \
             f"{training_spec.batch_size}_batch_size--{learning_rate_str}_lr"
         training_spec.save_loss_as = f'losses-optimization/{param_filename}'
