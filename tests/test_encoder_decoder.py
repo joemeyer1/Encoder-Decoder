@@ -2,7 +2,7 @@
 # Copyright (c) 2020 Joseph Meyer. All Rights Reserved.
 
 import os
-
+os.sys.path.append('/Users/joemeyer/Documents/Encoder-Decoder')
 import time
 
 import unittest
@@ -12,6 +12,7 @@ import torch
 from dataclasses import dataclass
 from typing import Tuple, Optional
 
+print(os.sys.path)
 from src.encoder_decoder import EncoderDecoder
 from src.train import train_net, save_net, load_net
 
@@ -110,10 +111,10 @@ class TestEncoderDecoder(unittest.TestCase):
     def test_train_encoder_decoder_sunsets_for_optimization(self):
 
         delete_data: bool = False  # indicates to delete generated images
-        net_to_load: Optional[str] = "nets/5_3_3_1_cnn_shape-relu_activation-0_res_weight-32_embedding_size-0_n_linear_embedding_layers-net0.pickle"   # None  # e.g. "nets/net180.pickle"
+        net_to_load: Optional[str] = None  # e.g. "nets/net180.pickle"
         i: int = 0  # i indicates minimum number ID to use for file naming
 
-        image_spec = ImageSpec(dir_name='img_data', n_images=16, img_dim=128)
+        image_spec = ImageSpec(dir_name='img_data', n_images=64, img_dim=512)
 
         encoder_decoder_spec = EncoderDecoderSpec(
             cnn_shape=(5, 3, 3, 1),
@@ -121,7 +122,7 @@ class TestEncoderDecoder(unittest.TestCase):
             compression_factor=2,
             res_weight=0,
             dropout=.05,
-            embedding_size=32,
+            embedding_size=16,
             n_linear_embedding_layers=0,
             n_linear_final_layers=0,
         )
