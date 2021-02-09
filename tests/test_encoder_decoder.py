@@ -5,6 +5,8 @@ import os
 os.sys.path.append('/Users/joemeyer/Documents/Encoder-Decoder')
 import time
 
+from math import log
+
 import unittest
 
 import torch
@@ -144,6 +146,16 @@ class TestEncoderDecoder(unittest.TestCase):
             delete_data=delete_data,
         )
         training_spec.check_params(image_spec.n_images)
+
+        # get param filename
+        cnn_str = str(encoder_decoder_spec.cnn_shape).replace('(', '').replace(')', '').replace(', ', '_')
+        lr_first_digit = str(training_spec.learning_rate).replace('0', '').replace('.', '')[0]
+        learning_rate_str = f"{lr_first_digit}e{round(log(training_spec.learning_rate, 10))}"
+        param_filename = f"{cnn_str}_cnn_shape--{encoder_decoder_spec.activation}_activation--" \
+            f"{encoder_decoder_spec.res_weight}_res_weight--{encoder_decoder_spec.embedding_size}_embedding_size--" \
+            f"{encoder_decoder_spec.n_linear_embedding_layers}_n_linear_embedding_layers--" \
+            f"{training_spec.batch_size}_batch_size--{learning_rate_str}_lr"
+        training_spec.save_loss_as = f'losses-optimization/{param_filename}'
 
         # checks if image directories for storing generated images exist - if not, makes them
         self.make_image_directories((
