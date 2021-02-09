@@ -28,6 +28,7 @@ class EncoderDecoder(nn.Module):
         print(f"compression factor: {self.compression_factor}")
 
         self.res_weight = encoder_decoder_spec.res_weight
+        self.dropout = encoder_decoder_spec.dropout
         self.build_activation_fn(encoder_decoder_spec.activation)
 
         self.net = nn.Sequential()
@@ -68,7 +69,7 @@ class EncoderDecoder(nn.Module):
                 conv_activation = self.conv_activation_fn()
             else:
                 conv_activation = nn.Identity()
-            conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=conv_activation)
+            conv_block = ConvBlock(kernel_size=kernel_size, stride=stride, activation_fn=conv_activation, dropout=self.dropout)
             # linear_layer = nn.Linear(self.current_output_size, self.current_output_size // self.compression_factor)
             encoder.add_module(f'conv_block{i}', conv_block)
             self.current_output_size //= stride
@@ -92,7 +93,7 @@ class EncoderDecoder(nn.Module):
             else:
                 conv_activation = scaled_tanh(scale_factor=255)
                 pool = False
-            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=conv_activation, pool=pool)
+            conv_block = ConvBlock(kernel_size, stride=1, scale_factor=stride, activation_fn=conv_activation, pool=pool, dropout=self.dropout)
             # linear_layer = nn.Linear(self.current_output_size, self.current_output_size // self.compression_factor)
             decoder.add_module(f'deconv_block{i}', conv_block)
             self.current_output_size *= stride
@@ -104,10 +105,10 @@ class EncoderDecoder(nn.Module):
     def build_linear_block(self, n_layers, linear_block_type=''):
         for i in range(n_layers):
             linear_layer = nn.Sequential(
-                nn.Dropout(),
+                nn.Dropout(self.dropout),
                 Linear2d(res_weight=self.res_weight, in_features=self.current_output_size**2, out_features=self.current_output_size**2),
                 nn.ReLU(),
-                nn.Dropout(),
+                nn.Dropout(self.dropout),
                 Linear2d(res_weight=self.res_weight, in_features=self.current_output_size**2, out_features=self.current_output_size**2),
             )
             self.net.add_module(f'linear_{linear_block_type}_layer{i}', linear_layer)

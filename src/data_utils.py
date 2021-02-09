@@ -13,6 +13,7 @@ class EncoderDecoderSpec:
     activation: str
     compression_factor: int
     res_weight: float
+    dropout: float
     embedding_size: int
     n_linear_embedding_layers: int
     n_linear_final_layers: int

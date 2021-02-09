@@ -22,12 +22,14 @@ from torch import nn
 
 
 class ConvBlock(nn.Module):
-	def __init__(self, kernel_size=3, stride=1, scale_factor=None, activation_fn=nn.ReLU(), pool=True):
+	def __init__(self, kernel_size=3, stride=1, scale_factor=None, activation_fn=nn.ReLU(), pool=True, dropout=.05):
 		# make kernel odd
 		if kernel_size % 2 == 0:
 			kernel_size += 1
 		# calculate padding to retain dim
 		padding = (kernel_size - 1) // 2
+
+		self.dropout = dropout
 
 		super(ConvBlock, self).__init__()
 
@@ -53,7 +55,7 @@ class ConvBlock(nn.Module):
 			pool_layer = nn.Identity()
 
 		self.block = nn.Sequential(
-			nn.Dropout(),
+			nn.Dropout(self.dropout),
 			conv_layer,
 			activation_fn,
 			pool_layer,
