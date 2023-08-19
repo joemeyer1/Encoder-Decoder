@@ -1,6 +1,6 @@
 # Encoder-Decoder
  
-I experimented with a variety of methods for generating sunset images. I first tried DeepDream’s idea of running gradient descent directly on input images to maximize their classification as sunsets by a Convolutional Neural Network (CNN), which I pre-trained on sunset photos scraped from the web. (Code can be found here: 
+I experimented with a variety of methods for generating sunset images. I first tried DeepDream’s idea of running gradient descent directly on input images to maximize their classification as sunsets by a Convolutional Neural Network (CNN), which I pre-trained on sunset photos scraped from the web. (Code can be found here: https://github.com/joemeyer1/Img-Gen ).
 This produced some cool output, but each CNN yielded only variations on the same pattern. Even across CNNs, the core visual themes were very similar, given similar training data - the models usually learned to look for / generate a round, neon sun glowing brightly against a dark background. 
 
 [ example DeepDream-ish generated image:
